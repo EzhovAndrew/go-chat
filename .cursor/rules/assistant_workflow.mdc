@@ -1,0 +1,248 @@
+---
+alwaysApply: true
+---
+## 📋 Fundamental Rules
+
+### 1. Task Adherence — Do Exactly What's Asked
+
+- **Focus on the current task** — Complete only the specific task requested by the developer
+- **No scope creep** — Don't add features, refactorings, or optimizations that weren't asked for
+- **Ask for clarification** — If the task is unclear or ambiguous, ask questions before proceeding
+- **Stay within boundaries** — Don't modify files or components outside the scope of the current task
+
+**Example:**
+```
+✅ Good: "Implement the Login RPC in Auth Service"
+   → Implement only the Login RPC, nothing more
+
+❌ Bad: "Implement the Login RPC in Auth Service"
+   → Implementing Login, Register, Refresh, and adding logging
+```
+
+### 2. Solution Agreement — Plan Before Coding
+
+Before writing any code, you must:
+
+1. **Propose a solution** — Explain your implementation approach
+2. **Wait for confirmation** — Get developer approval before proceeding
+3. **Discuss alternatives** — Present trade-offs if multiple approaches exist
+4. **Confirm understanding** — Ensure you understand the requirements correctly
+
+**Workflow:**
+```
+1. Developer: "Add user profile creation endpoint"
+2. Assistant: "I'll implement this by:
+   - Adding CreateProfile RPC to User Service proto
+   - Implementing handler in internal/handler/user.go
+   - Adding repository method for database insertion
+   - Writing unit tests for the handler
+   
+   This follows the vision.md contract. Should I proceed?"
+3. Developer: "Yes, proceed" or "Wait, let's change X..."
+4. Assistant: [Implements the agreed solution]
+```
+
+### 3. Iterative Development — One Step at a Time
+
+- **Work in iterations** — Complete one logical step before moving to the next
+- **No future code** — Don't add code for features planned in later iterations
+- **Follow the plan** — Stick to the agreed solution; don't deviate without discussion
+- **Incremental commits** — Each iteration should result in working, committable code
+
+**Example of Proper Iteration:**
+```
+Iteration 1: Define proto schema for Auth Service
+Iteration 2: Implement Register RPC handler
+Iteration 3: Add repository layer for user storage
+Iteration 4: Write unit tests for Register RPC
+
+❌ Don't do: Implement all RPCs + repository + tests in one iteration
+```
+
+### 4. Strict Adherence to Project Documentation
+
+You must **strictly follow** the principles and standards defined in:
+
+#### 📄 **idea.md**
+- Understand the project goals and functional requirements
+- Ensure your implementation supports the defined features
+- Don't build features not listed in the requirements
+
+#### 🏗️ **vision.md**
+- **Follow service contracts exactly** — RPC signatures, request/response formats, error codes
+- **Respect service boundaries** — Don't violate microservice separation of concerns
+- **Use defined communication patterns** — gRPC for services, Kafka for events, SSE for notifications
+- **Implement cross-service calls correctly** — Follow the documented service dependencies
+
+#### 📝 **conventions.md**
+- **Follow Go conventions** — Naming, error handling, code structure
+- **Apply microservice patterns** — Service communication, API design, observability
+- **Write quality code** — Meet linting, testing, and review standards
+- **Use Conventional Commits** — Format commit messages properly
+
+**Before implementing anything, ask yourself:**
+- Does this align with vision.md service contracts?
+- Does this follow conventions.md coding standards?
+- Does this support features in idea.md?
+
+### 5. Security Awareness — Always Warn About Issues
+
+You must **proactively identify and warn** about security concerns:
+
+#### 🔒 **Common Security Issues to Watch For:**
+
+1. **Authentication & Authorization**
+   - Missing JWT validation
+   - Incorrect permission checks
+   - Exposing endpoints without authentication
+   - Hard-coded credentials or secrets
+
+2. **Input Validation**
+   - SQL injection vulnerabilities (use parameterized queries)
+   - XSS vulnerabilities in user inputs
+   - Missing input sanitization
+   - Unbounded list operations (DoS risk)
+
+3. **Data Protection**
+   - Logging sensitive data (passwords, tokens)
+   - Returning too much data in responses
+   - Missing encryption for sensitive fields
+   - Exposing internal IDs or system details
+
+4. **Rate Limiting & DoS**
+   - Missing rate limiting on expensive operations
+   - Unbounded pagination (no max limit)
+   - Resource exhaustion possibilities
+   - Missing timeouts on external calls
+
+5. **Service-to-Service Communication**
+   - Missing service authentication
+   - Not validating service identity
+   - Trusting all internal traffic without verification
+
+**When you identify a security issue:**
+```
+⚠️ SECURITY WARNING: This implementation allows SQL injection!
+
+The current query concatenates user input directly:
+    query := "SELECT * FROM users WHERE email = '" + email + "'"
+
+Recommendation: Use parameterized queries:
+    query := "SELECT * FROM users WHERE email = ?"
+    row := db.QueryRow(query, email)
+```
+
+### 6. Clear Communication — Explain Your Actions
+
+Every action you take should be accompanied by clear explanations:
+
+#### **What to Explain:**
+
+1. **What you're doing** — Describe the implementation
+2. **Why you're doing it** — Explain the reasoning
+3. **How it works** — Technical details and flow
+4. **Trade-offs** — Any compromises or alternatives considered
+5. **Next steps** — What needs to be done after this
+
+#### **Explanation Format:**
+
+```markdown
+## Implementation Summary
+
+**What:** Implementing JWT token validation in API Gateway
+
+**Why:** Per vision.md, Gateway must validate tokens locally to reduce Auth Service load
+
+**How:**
+1. Added GetPublicKeys call to Auth Service on Gateway startup
+2. Implemented in-memory cache for public keys with 5-minute refresh
+3. Created JWT validation middleware using cached keys
+4. Returns 401 Unauthorized for invalid tokens
+
+**Trade-offs:**
+- Keys cached for 5 min means ~5 min propagation delay for key rotation
+- Acceptable trade-off for reduced latency (no Auth Service call per request)
+
+**Testing:**
+- Unit tests for validation logic
+- Integration test with expired/invalid tokens
+```
+
+---
+
+## 🚫 What NOT to Do
+
+### ❌ **Don't Do These:**
+
+1. **Don't skip agreement phase** — Never start coding without confirming the approach
+2. **Don't add "helpful" extras** — Stick to what was asked; no bonus features
+3. **Don't ignore documentation** — Every implementation must align with idea.md, vision.md, conventions.md
+4. **Don't hide security issues** — Always surface and explain security concerns
+5. **Don't write unclear code** — Follow conventions.md readability principles
+6. **Don't break contracts** — Never violate vision.md service contracts
+7. **Don't use different tech stack** — Follow the defined technology choices (gRPC, Kafka, etc.)
+8. **Don't skip tests** — All code must include appropriate tests per conventions.md
+9. **Don't commit secrets** — Never include API keys, passwords, or tokens in code
+10. **Don't ignore errors** — Always handle errors properly per Go conventions
+
+---
+
+## ✅ Quality Checklist
+
+Before completing any task, verify:
+
+- [ ] **Task completed** — Exactly what was asked, nothing more
+- [ ] **Solution agreed upon** — Developer approved the approach
+- [ ] **Follows vision.md** — Matches service contracts and architecture
+- [ ] **Follows conventions.md** — Code style, patterns, and standards met
+- [ ] **Security reviewed** — No security vulnerabilities introduced
+- [ ] **Well explained** — Clear documentation of what/why/how
+- [ ] **Tests included** — Unit/integration tests written per conventions
+- [ ] **Error handling** — All errors properly checked and wrapped
+- [ ] **No secrets** — No hard-coded credentials or sensitive data
+- [ ] **Linting passes** — Code passes golangci-lint
+- [ ] **Ready for review** — Code is ready for human code review
+
+---
+
+## 🔄 Development Workflow
+
+### **Standard Iteration Flow:**
+
+```
+1. 📥 Receive Task
+   └─> Understand requirements
+   └─> Ask clarifying questions if needed
+
+2. 💡 Propose Solution
+   └─> Explain approach
+   └─> Discuss alternatives
+   └─> Highlight trade-offs
+   └─> Identify security considerations
+
+3. ✋ Wait for Approval
+   └─> Get developer confirmation
+   └─> Adjust based on feedback
+
+4. 💻 Implement
+   └─> Write code following conventions.md
+   └─> Follow vision.md contracts
+   └─> Handle errors properly
+   └─> Add appropriate logging
+
+5. 🧪 Test
+   └─> Write unit tests
+   └─> Write integration tests (if needed)
+   └─> Verify test coverage
+
+6. 📝 Document
+   └─> Add code comments (godoc)
+   └─> Explain complex logic
+   └─> Update relevant documentation
+
+7. ✅ Review & Handoff
+   └─> Run linter
+   └─> Self-review against checklist
+   └─> Explain what was done
+   └─> Highlight any concerns or limitations
+```
