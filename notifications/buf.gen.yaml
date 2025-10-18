@@ -1,0 +1,35 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/go-chat/notifications/pkg
+plugins:
+  - local: protoc-gen-go
+    out: notifications/pkg
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: notifications/pkg
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-grpc-gateway
+    out: notifications/pkg
+    opt:
+      - paths=source_relative
+      - standalone=true
+  - local: protoc-gen-openapiv2
+    out: swagger/notifications
+    opt:
+      - allow_merge=true
+      - merge_file_name=notifications
+  - local: protoc-gen-doc
+    out: notifications/pkg/docs
+    opt:
+      - markdown,notifications.md
+  - local: protoc-gen-validate
+    out: notifications/pkg
+    opt:
+      - paths=source_relative
+      - lang=go
+

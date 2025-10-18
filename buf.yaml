@@ -1,0 +1,19 @@
+version: v2
+# Root workspace configuration
+# This file defines the workspace containing all service modules
+modules:
+  - path: auth/proto
+  - path: users/proto
+  - path: social/proto
+  - path: chat/proto
+  - path: notifications/proto
+  - path: gateway/proto
+lint:
+  use:
+    - STANDARD
+    - COMMENTS
+    - FILE_LOWER_SNAKE_CASE
+breaking:
+  use:
+    - FILE
+
