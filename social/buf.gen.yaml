@@ -27,9 +27,4 @@ plugins:
     out: social/pkg/docs
     opt:
       - markdown,social.md
-  - local: protoc-gen-validate
-    out: social/pkg
-    opt:
-      - paths=source_relative
-      - lang=go
 

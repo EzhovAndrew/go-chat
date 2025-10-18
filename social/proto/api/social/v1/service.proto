@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package api.social.v1;
+
+import "api/social/v1/messages.proto";
+
+option go_package = "github.com/go-chat/social/pkg/api/v1;socialv1";
+
+// SocialService handles friend relationships and blocking
+service SocialService {
+  // SendFriendRequest sends a friend request to another user
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse);
+  
+  // ListRequests lists pending friend requests for a user
+  rpc ListRequests(ListRequestsRequest) returns (ListRequestsResponse);
+  
+  // AcceptFriendRequest accepts a friend request
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (AcceptFriendRequestResponse);
+  
+  // DeclineFriendRequest declines a friend request
+  rpc DeclineFriendRequest(DeclineFriendRequestRequest) returns (DeclineFriendRequestResponse);
+  
+  // RemoveFriend removes a user from friends list
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse);
+  
+  // ListFriends lists all friends of a user
+  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse);
+  
+  // BlockUser blocks a user
+  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse);
+  
+  // UnblockUser unblocks a user
+  rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse);
+  
+  // CheckRelationship checks the relationship status between two users
+  rpc CheckRelationship(CheckRelationshipRequest) returns (CheckRelationshipResponse);
+}
+

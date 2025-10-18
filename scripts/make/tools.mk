@@ -1,14 +1,13 @@
 # Tools installation and management
 
 # Tool versions
-BUF_VERSION := 1.28.1
+BUF_VERSION := 1.58.0
 GOLANGCI_LINT_VERSION := 1.55.2
 PROTOC_GEN_GO_VERSION := 1.31.0
 PROTOC_GEN_GO_GRPC_VERSION := 1.3.0
 PROTOC_GEN_GRPC_GATEWAY_VERSION := 2.19.0
 PROTOC_GEN_OPENAPIV2_VERSION := 2.19.0
 PROTOC_GEN_DOC_VERSION := 1.5.1
-PROTOC_GEN_VALIDATE_VERSION := 1.0.4
 
 # Local binary directory
 LOCAL_BIN := $(CURDIR)/bin
@@ -22,13 +21,18 @@ PROTOC_GEN_GO_GRPC := $(LOCAL_BIN)/protoc-gen-go-grpc
 PROTOC_GEN_GRPC_GATEWAY := $(LOCAL_BIN)/protoc-gen-grpc-gateway
 PROTOC_GEN_OPENAPIV2 := $(LOCAL_BIN)/protoc-gen-openapiv2
 PROTOC_GEN_DOC := $(LOCAL_BIN)/protoc-gen-doc
-PROTOC_GEN_VALIDATE := $(LOCAL_BIN)/protoc-gen-validate
+
+# Vendor proto directory
+VENDOR_PROTO := $(CURDIR)/vendor.protobuf
 
 $(LOCAL_BIN):
 	mkdir -p $(LOCAL_BIN)
 
+$(VENDOR_PROTO):
+	@mkdir -p $(VENDOR_PROTO)
+
 .PHONY: install-tools
-install-tools: $(LOCAL_BIN) install-buf install-protoc-plugins install-golangci-lint ## Install all required tools
+install-tools: $(LOCAL_BIN) install-buf install-protoc-plugins install-golangci-lint install-vendor-protos ## Install all required tools
 
 .PHONY: install-buf
 install-buf: $(LOCAL_BIN) ## Install buf CLI
@@ -49,9 +53,49 @@ install-protoc-plugins: $(LOCAL_BIN) ## Install protoc Go plugins
 	@GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v$(PROTOC_GEN_OPENAPIV2_VERSION)
 	@echo "Installing protoc-gen-doc $(PROTOC_GEN_DOC_VERSION)..."
 	@GOBIN=$(LOCAL_BIN) go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@v$(PROTOC_GEN_DOC_VERSION)
-	@echo "Installing protoc-gen-validate $(PROTOC_GEN_VALIDATE_VERSION)..."
-	@GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v$(PROTOC_GEN_VALIDATE_VERSION)
 	@echo "All protoc plugins installed successfully"
+
+.PHONY: install-vendor-protos
+install-vendor-protos: $(VENDOR_PROTO) ## Clone vendor proto dependencies
+	@echo "Cloning vendor proto files..."
+	@if [ ! -d "$(VENDOR_PROTO)/googleapis" ]; then \
+		echo "Cloning googleapis..."; \
+		git clone --depth 1 --branch master https://github.com/googleapis/googleapis.git $(VENDOR_PROTO)/googleapis; \
+		echo "Cleaning non-proto files from googleapis..."; \
+		find $(VENDOR_PROTO)/googleapis -type f ! -name "*.proto" -delete; \
+		find $(VENDOR_PROTO)/googleapis -type d -empty -delete; \
+	else \
+		echo "googleapis already exists, skipping..."; \
+	fi
+	@if [ ! -d "$(VENDOR_PROTO)/protovalidate" ]; then \
+		echo "Cloning protovalidate..."; \
+		git clone --depth 1 --branch main https://github.com/bufbuild/protovalidate.git $(VENDOR_PROTO)/protovalidate; \
+		echo "Cleaning non-proto files from protovalidate..."; \
+		find $(VENDOR_PROTO)/protovalidate -type f ! -name "*.proto" -delete; \
+		find $(VENDOR_PROTO)/protovalidate -type d -empty -delete; \
+	else \
+		echo "protovalidate already exists, skipping..."; \
+	fi
+	@echo "Vendor proto files installed successfully"
+
+.PHONY: clean-vendor-protos
+clean-vendor-protos: ## Clean vendor proto files
+	@echo "Cleaning vendor proto files..."
+	@rm -rf $(VENDOR_PROTO)
+	@echo "Vendor proto files cleaned ✓"
+
+.PHONY: update-vendor-protos
+update-vendor-protos: ## Update vendor proto files
+	@echo "Updating vendor proto files..."
+	@if [ -d "$(VENDOR_PROTO)/googleapis" ]; then \
+		echo "Updating googleapis..."; \
+		cd $(VENDOR_PROTO)/googleapis && git pull; \
+	fi
+	@if [ -d "$(VENDOR_PROTO)/protovalidate" ]; then \
+		echo "Updating protovalidate..."; \
+		cd $(VENDOR_PROTO)/protovalidate && git pull; \
+	fi
+	@echo "Vendor proto files updated ✓"
 
 .PHONY: install-golangci-lint
 install-golangci-lint: $(LOCAL_BIN) ## Install golangci-lint
@@ -69,7 +113,8 @@ check-tools: ## Check if all required tools are installed
 	@command -v protoc-gen-grpc-gateway >/dev/null 2>&1 || { echo "protoc-gen-grpc-gateway is not installed. Run 'make install-protoc-plugins'"; exit 1; }
 	@command -v protoc-gen-openapiv2 >/dev/null 2>&1 || { echo "protoc-gen-openapiv2 is not installed. Run 'make install-protoc-plugins'"; exit 1; }
 	@command -v protoc-gen-doc >/dev/null 2>&1 || { echo "protoc-gen-doc is not installed. Run 'make install-protoc-plugins'"; exit 1; }
-	@command -v protoc-gen-validate >/dev/null 2>&1 || { echo "protoc-gen-validate is not installed. Run 'make install-protoc-plugins'"; exit 1; }
 	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint is not installed. Run 'make install-golangci-lint'"; exit 1; }
+	@test -d $(VENDOR_PROTO)/googleapis || { echo "Vendor protos not installed. Run 'make install-vendor-protos'"; exit 1; }
+	@test -d $(VENDOR_PROTO)/protovalidate || { echo "Vendor protos not installed. Run 'make install-vendor-protos'"; exit 1; }
 	@echo "All tools are installed ✓"
 

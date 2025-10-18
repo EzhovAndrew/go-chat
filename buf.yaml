@@ -8,12 +8,16 @@ modules:
   - path: chat/proto
   - path: notifications/proto
   - path: gateway/proto
+  - path: vendor.protobuf/googleapis
+  - path: vendor.protobuf/protovalidate/proto/protovalidate
 lint:
   use:
     - STANDARD
     - COMMENTS
     - FILE_LOWER_SNAKE_CASE
+  ignore:
+    - vendor.protobuf/googleapis
+    - vendor.protobuf/protovalidate/proto/protovalidate
 breaking:
   use:
     - FILE
-

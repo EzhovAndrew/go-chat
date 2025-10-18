@@ -27,9 +27,4 @@ plugins:
     out: users/pkg/docs
     opt:
       - markdown,users.md
-  - local: protoc-gen-validate
-    out: users/pkg
-    opt:
-      - paths=source_relative
-      - lang=go
 

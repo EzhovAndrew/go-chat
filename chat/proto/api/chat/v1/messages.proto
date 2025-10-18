@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package api.chat.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/go-chat/chat/pkg/api/v1;chatv1";
+
+// Chat represents a chat conversation
+message Chat {
+  // Unique identifier for this chat conversation
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  // List of user IDs participating in this chat (2 users for direct chat)
+  repeated string participant_ids = 2 [(buf.validate.field).repeated.items.string.uuid = true];
+  // Timestamp when chat was created
+  google.protobuf.Timestamp created_at = 3;
+}
+
+// Message represents a chat message
+message Message {
+  // Unique identifier for this message
+  string message_id = 1 [(buf.validate.field).string.uuid = true];
+  // Chat ID where this message was sent
+  string chat_id = 2 [(buf.validate.field).string.uuid = true];
+  // User ID of the message sender
+  string sender_id = 3 [(buf.validate.field).string.uuid = true];
+  // Message text content
+  string text = 4;
+  // Timestamp when message was sent
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// CreateDirectChatRequest contains the other participant's ID
+message CreateDirectChatRequest {
+  // User ID to create direct chat with (must be friends with sender)
+  string participant_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// CreateDirectChatResponse returns the created chat ID
+message CreateDirectChatResponse {
+  // ID of created or existing chat between the two users
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// GetChatRequest contains the chat ID to retrieve
+message GetChatRequest {
+  // Chat ID to retrieve (user must be participant)
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// GetChatResponse returns the chat information
+message GetChatResponse {
+  // Requested chat details
+  Chat chat = 1;
+}
+
+// ListUserChatsRequest contains pagination parameters
+message ListUserChatsRequest {
+  // User ID to get chats for
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2;
+  // Maximum number of chats to return
+  int32 limit = 3 [(buf.validate.field).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+}
+
+// ListUserChatsResponse returns user's chats with pagination
+message ListUserChatsResponse {
+  // List of chats ordered by most recent activity
+  repeated Chat chats = 1;
+  // Cursor for next page (empty if no more results)
+  string next_cursor = 2;
+}
+
+// ListChatMembersRequest contains the chat ID
+message ListChatMembersRequest {
+  // Chat ID to get members from (user must be participant)
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// ListChatMembersResponse returns the list of participant IDs
+message ListChatMembersResponse {
+  // List of user IDs participating in this chat
+  repeated string user_ids = 1 [(buf.validate.field).repeated.items.string.uuid = true];
+}
+
+// SendMessageRequest contains message data
+message SendMessageRequest {
+  // Chat ID to send message to (user must be participant)
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  // Message text content (supports unicode, emoji)
+  string text = 2 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 10000
+  }];
+  // Idempotency key to prevent duplicate messages on retry
+  string idempotency_key = 3 [(buf.validate.field).string.uuid = true];
+}
+
+// SendMessageResponse returns the created message
+message SendMessageResponse {
+  // Sent message with ID and timestamp
+  Message message = 1;
+}
+
+// ListMessagesRequest contains pagination parameters
+message ListMessagesRequest {
+  // Chat ID to get messages from (user must be participant)
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2;
+  // Maximum number of messages to return
+  int32 limit = 3 [(buf.validate.field).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+}
+
+// ListMessagesResponse returns messages with pagination
+message ListMessagesResponse {
+  // List of messages ordered by timestamp (newest first)
+  repeated Message messages = 1;
+  // Cursor for next page (empty if no more results)
+  string next_cursor = 2;
+}
+
+// StreamMessagesRequest contains the chat ID and optional timestamp
+message StreamMessagesRequest {
+  // Chat ID to stream messages from (user must be participant)
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  // Only receive messages sent after this timestamp (empty for all new messages)
+  google.protobuf.Timestamp since = 2;
+}
+
+// StreamMessagesResponse is streamed for each new message
+message StreamMessagesResponse {
+  // New message received in the chat
+  Message message = 1;
+}
+

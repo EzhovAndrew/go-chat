@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package api.social.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/go-chat/social/pkg/api/v1;socialv1";
+
+// RelationshipStatus represents the relationship between two users
+enum RelationshipStatus {
+  // Default value, should not be used
+  RELATIONSHIP_STATUS_UNSPECIFIED = 0;
+  // No relationship exists between users
+  RELATIONSHIP_STATUS_NONE = 1;
+  // Friend request sent but not yet accepted
+  RELATIONSHIP_STATUS_PENDING = 2;
+  // Users are friends (can chat and see each other's content)
+  RELATIONSHIP_STATUS_FRIEND = 3;
+  // User has blocked the other (prevents all interactions)
+  RELATIONSHIP_STATUS_BLOCKED = 4;
+}
+
+// FriendRequest represents a friend request
+message FriendRequest {
+  // Unique identifier for this friend request
+  string request_id = 1 [(buf.validate.field).string.uuid = true];
+  // User ID who initiated the friend request
+  string requester_id = 2 [(buf.validate.field).string.uuid = true];
+  // User ID who received the friend request
+  string target_id = 3 [(buf.validate.field).string.uuid = true];
+  // Timestamp when request was created
+  google.protobuf.Timestamp created_at = 4;
+  // Current status (pending, accepted, declined)
+  string status = 5;
+}
+
+// SendFriendRequestRequest contains the target user ID
+message SendFriendRequestRequest {
+  // User ID to send friend request to
+  string target_user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// SendFriendRequestResponse returns the created request
+message SendFriendRequestResponse {
+  // Created friend request with pending status
+  FriendRequest request = 1;
+}
+
+// ListRequestsRequest contains pagination parameters
+message ListRequestsRequest {
+  // User ID to get pending friend requests for
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2;
+  // Maximum number of requests to return
+  int32 limit = 3 [(buf.validate.field).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+}
+
+// ListRequestsResponse returns pending friend requests with pagination
+message ListRequestsResponse {
+  // List of pending incoming friend requests
+  repeated FriendRequest requests = 1;
+  // Cursor for next page (empty if no more results)
+  string next_cursor = 2;
+}
+
+// AcceptFriendRequestRequest contains the request ID to accept
+message AcceptFriendRequestRequest {
+  // Friend request ID to accept (must be target of request)
+  string request_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// AcceptFriendRequestResponse returns the accepted request
+message AcceptFriendRequestResponse {
+  // Accepted friend request (both users now friends)
+  FriendRequest request = 1;
+}
+
+// DeclineFriendRequestRequest contains the request ID to decline
+message DeclineFriendRequestRequest {
+  // Friend request ID to decline (must be target of request)
+  string request_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// DeclineFriendRequestResponse returns the declined request
+message DeclineFriendRequestResponse {
+  // Declined friend request (request deleted, no friendship created)
+  FriendRequest request = 1;
+}
+
+// RemoveFriendRequest contains the friend's user ID to remove
+message RemoveFriendRequest {
+  // Friend's user ID to remove from friends list
+  string friend_user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// RemoveFriendResponse is empty on success
+message RemoveFriendResponse {}  // Intentionally empty
+
+// ListFriendsRequest contains pagination parameters
+message ListFriendsRequest {
+  // User ID to get friends list for
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2;
+  // Maximum number of friends to return
+  int32 limit = 3 [(buf.validate.field).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+}
+
+// ListFriendsResponse returns a list of friend user IDs with pagination
+message ListFriendsResponse {
+  // List of friend user IDs (use UserService to get profiles)
+  repeated string user_ids = 1 [(buf.validate.field).repeated.items.string.uuid = true];
+  // Cursor for next page (empty if no more results)
+  string next_cursor = 2;
+}
+
+// BlockUserRequest contains the user ID to block
+message BlockUserRequest {
+  // User ID to block (prevents all interactions, removes friendship)
+  string target_user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// BlockUserResponse is empty on success
+message BlockUserResponse {}  // Intentionally empty
+
+// UnblockUserRequest contains the user ID to unblock
+message UnblockUserRequest {
+  // User ID to unblock (allows interactions again)
+  string target_user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// UnblockUserResponse is empty on success
+message UnblockUserResponse {}  // Intentionally empty
+
+// CheckRelationshipRequest contains user IDs to check relationship
+message CheckRelationshipRequest {
+  // First user ID
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // Second user ID to check relationship with
+  string target_user_id = 2 [(buf.validate.field).string.uuid = true];
+}
+
+// CheckRelationshipResponse returns the relationship status
+message CheckRelationshipResponse {
+  // Current relationship status between the two users
+  RelationshipStatus status = 1;
+}
+

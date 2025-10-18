@@ -27,9 +27,4 @@ plugins:
     out: gateway/pkg/docs
     opt:
       - markdown,gateway.md
-  - local: protoc-gen-validate
-    out: gateway/pkg
-    opt:
-      - paths=source_relative
-      - lang=go
 

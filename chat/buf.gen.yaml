@@ -27,9 +27,4 @@ plugins:
     out: chat/pkg/docs
     opt:
       - markdown,chat.md
-  - local: protoc-gen-validate
-    out: chat/pkg
-    opt:
-      - paths=source_relative
-      - lang=go
 

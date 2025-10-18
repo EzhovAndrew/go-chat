@@ -27,9 +27,4 @@ plugins:
     out: auth/pkg/docs
     opt:
       - markdown,auth.md
-  - local: protoc-gen-validate
-    out: auth/pkg
-    opt:
-      - paths=source_relative
-      - lang=go
 

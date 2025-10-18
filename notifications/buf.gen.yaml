@@ -27,9 +27,4 @@ plugins:
     out: notifications/pkg/docs
     opt:
       - markdown,notifications.md
-  - local: protoc-gen-validate
-    out: notifications/pkg
-    opt:
-      - paths=source_relative
-      - lang=go
 

@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package api.notifications.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/go-chat/notifications/pkg/api/v1;notificationsv1";
+
+// NotificationType represents the type of notification
+enum NotificationType {
+  // Default value, should not be used
+  NOTIFICATION_TYPE_UNSPECIFIED = 0;
+  // Notification for new chat message
+  NOTIFICATION_TYPE_MESSAGE = 1;
+  // Notification for incoming friend request
+  NOTIFICATION_TYPE_FRIEND_REQUEST = 2;
+  // Notification for accepted friend request
+  NOTIFICATION_TYPE_FRIEND_ACCEPTED = 3;
+}
+
+// Notification represents a notification
+message Notification {
+  // Unique identifier for this notification
+  string notification_id = 1 [(buf.validate.field).string.uuid = true];
+  // User ID who should receive this notification
+  string user_id = 2 [(buf.validate.field).string.uuid = true];
+  // Type of notification (message, friend_request, etc.)
+  NotificationType type = 3;
+  // Notification title shown to user
+  string title = 4;
+  // Notification body text with details
+  string body = 5;
+  // JSON-encoded additional data (chat_id, sender_id, etc.)
+  string data = 6;
+  // Timestamp when notification was created
+  google.protobuf.Timestamp created_at = 7;
+  // Whether user has read this notification
+  bool read = 8;
+}
+
+// GetNotificationsRequest contains pagination parameters
+message GetNotificationsRequest {
+  // User ID to get notification history for
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2;
+  // Maximum number of notifications to return
+  int32 limit = 3 [(buf.validate.field).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+}
+
+// GetNotificationsResponse returns notifications with pagination
+message GetNotificationsResponse {
+  // List of notifications ordered by timestamp (newest first)
+  repeated Notification notifications = 1;
+  // Cursor for next page (empty if no more results)
+  string next_cursor = 2;
+}
+
+// MarkAsReadRequest contains the notification ID to mark as read
+message MarkAsReadRequest {
+  // Notification ID to mark as read (user must own notification)
+  string notification_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// MarkAsReadResponse is empty on success
+message MarkAsReadResponse {}  // Intentionally empty
+

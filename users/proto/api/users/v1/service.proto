@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package api.users.v1;
+
+import "api/users/v1/messages.proto";
+
+option go_package = "github.com/go-chat/users/pkg/api/v1;usersv1";
+
+// UserService handles user profile management and search
+service UserService {
+  // CreateProfile creates a new user profile
+  rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
+  
+  // UpdateProfile updates an existing user profile
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+  
+  // GetProfileByID retrieves a profile by user ID
+  rpc GetProfileByID(GetProfileByIDRequest) returns (GetProfileByIDResponse);
+  
+  // GetProfilesByIDs retrieves multiple profiles by user IDs (batch operation)
+  rpc GetProfilesByIDs(GetProfilesByIDsRequest) returns (GetProfilesByIDsResponse);
+  
+  // GetProfileByNickname retrieves a profile by nickname
+  rpc GetProfileByNickname(GetProfileByNicknameRequest) returns (GetProfileByNicknameResponse);
+  
+  // SearchByNickname searches for profiles matching a query with pagination
+  rpc SearchByNickname(SearchByNicknameRequest) returns (SearchByNicknameResponse);
+}
+

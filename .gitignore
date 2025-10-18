@@ -52,3 +52,6 @@ logs/
 
 # Linter cache
 .golangci-cache/
+
+# Vendor proto files
+vendor.protobuf/

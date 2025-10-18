@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package api.auth.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/go-chat/auth/pkg/api/v1;authv1";
+
+// RegisterRequest contains user registration data
+message RegisterRequest {
+  // User's email address used for authentication and communication
+  string email = 1 [(buf.validate.field).string = {
+    email: true,
+    min_len: 3,
+    max_len: 255
+  }];
+  // User's password (plaintext, will be hashed server-side)
+  string password = 2 [(buf.validate.field).string = {
+    min_len: 8,
+    max_len: 72
+  }];
+}
+
+// RegisterResponse returns the created user ID
+message RegisterResponse {
+  // Unique identifier of the newly created user account
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// LoginRequest contains user credentials
+message LoginRequest {
+  // User's email address for authentication
+  string email = 1 [(buf.validate.field).string = {
+    email: true,
+    min_len: 3,
+    max_len: 255
+  }];
+  // User's password for authentication
+  string password = 2 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 72
+  }];
+}
+
+// LoginResponse returns authentication tokens and user ID
+message LoginResponse {
+  // JWT access token for API authentication (short-lived, typically 15 minutes)
+  string access_token = 1;
+  // JWT refresh token for obtaining new access tokens (long-lived, typically 30 days)
+  string refresh_token = 2;
+  // Authenticated user's unique identifier
+  string user_id = 3 [(buf.validate.field).string.uuid = true];
+}
+
+// RefreshRequest contains the refresh token
+message RefreshRequest {
+  // Current valid refresh token to exchange for new access token
+  string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// RefreshResponse returns new authentication tokens
+message RefreshResponse {
+  // New JWT access token with extended expiration
+  string access_token = 1;
+  // New JWT refresh token (token rotation for security)
+  string refresh_token = 2;
+  // User's unique identifier from the refresh token
+  string user_id = 3 [(buf.validate.field).string.uuid = true];
+}
+
+// GetPublicKeysRequest is empty as it requires no parameters
+message GetPublicKeysRequest {}  // Intentionally empty
+
+// GetPublicKeysResponse returns the list of public keys for JWT validation
+message GetPublicKeysResponse {
+  // List of public keys in JWK format for validating JWT signatures
+  repeated PublicKey keys = 1;
+}
+
+// PublicKey represents a JSON Web Key for JWT validation
+message PublicKey {
+  // Key identifier used to match tokens with the correct public key
+  string kid = 1;
+  // Cryptographic algorithm used (e.g., RS256, ES256)
+  string alg = 2;
+  // Intended use of the key (typically "sig" for signature verification)
+  string use = 3;
+  // RSA modulus value (base64url-encoded)
+  string n = 4;
+  // RSA public exponent (base64url-encoded, commonly "AQAB")
+  string e = 5;
+}
+

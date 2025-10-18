@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+package api.users.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/go-chat/users/pkg/api/v1;usersv1";
+
+// UserProfile represents a user's profile information
+message UserProfile {
+  // Unique identifier linking profile to auth user account
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // Display name shown to other users (unique, searchable)
+  string nickname = 2;
+  // User's personal description or status message
+  string bio = 3;
+  // URL to user's profile picture (absolute URL to CDN or storage)
+  string avatar_url = 4;
+}
+
+// CreateProfileRequest contains data for creating a user profile
+message CreateProfileRequest {
+  // User account ID from auth service (must be authenticated user)
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // Desired display name (must be unique across platform)
+  string nickname = 2 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  // Optional personal description or status
+  string bio = 3 [(buf.validate.field).string.max_len = 500];
+  // Optional URL to profile picture
+  string avatar_url = 4 [(buf.validate.field).string = {
+    uri: true,
+    max_len: 2048
+  }];
+}
+
+// CreateProfileResponse returns the created profile
+message CreateProfileResponse {
+  // Newly created user profile with all fields populated
+  UserProfile profile = 1;
+}
+
+// UpdateProfileRequest contains data for updating a user profile
+message UpdateProfileRequest {
+  // Target user ID (must match authenticated user)
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // New display name (optional, if empty keeps current)
+  string nickname = 2;
+  // New bio text (optional, if empty keeps current)
+  string bio = 3;
+  // New avatar URL (optional, if empty keeps current)
+  string avatar_url = 4;
+}
+
+// UpdateProfileResponse returns the updated profile
+message UpdateProfileResponse {
+  // Updated user profile reflecting all changes
+  UserProfile profile = 1;
+}
+
+// GetProfileByIDRequest contains the user ID to look up
+message GetProfileByIDRequest {
+  // User ID to retrieve profile for
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// GetProfileByIDResponse returns the requested profile
+message GetProfileByIDResponse {
+  // Requested user profile (or error if not found)
+  UserProfile profile = 1;
+}
+
+// GetProfilesByIDsRequest contains multiple user IDs for batch lookup
+message GetProfilesByIDsRequest {
+  // List of user IDs to fetch (max 100 for performance)
+  repeated string user_ids = 1 [(buf.validate.field).repeated = {
+    min_items: 1,
+    max_items: 100,
+    items: {
+      string: {uuid: true}
+    }
+  }];
+}
+
+// GetProfilesByIDsResponse returns multiple profiles
+message GetProfilesByIDsResponse {
+  // Profiles in same order as requested (missing profiles omitted)
+  repeated UserProfile profiles = 1;
+}
+
+// GetProfileByNicknameRequest contains the nickname to look up
+message GetProfileByNicknameRequest {
+  // Exact nickname to search for (case-sensitive)
+  string nickname = 1;
+}
+
+// GetProfileByNicknameResponse returns the requested profile
+message GetProfileByNicknameResponse {
+  // Profile with matching nickname (or error if not found)
+  UserProfile profile = 1;
+}
+
+// SearchByNicknameRequest contains search parameters
+message SearchByNicknameRequest {
+  // Search query string (partial match on nicknames)
+  string query = 1 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2;
+  // Maximum number of results to return per page
+  int32 limit = 3 [(buf.validate.field).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+}
+
+// SearchByNicknameResponse returns search results with pagination
+message SearchByNicknameResponse {
+  // Matching user profiles ordered by relevance
+  repeated UserProfile profiles = 1;
+  // Cursor for fetching next page (empty if no more results)
+  string next_cursor = 2;
+}
+

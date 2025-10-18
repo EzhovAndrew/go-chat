@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package api.chat.v1;
+
+import "api/chat/v1/messages.proto";
+
+option go_package = "github.com/go-chat/chat/pkg/api/v1;chatv1";
+
+// ChatService handles direct messaging and chat management
+service ChatService {
+  // CreateDirectChat creates a 1-on-1 chat with another user
+  rpc CreateDirectChat(CreateDirectChatRequest) returns (CreateDirectChatResponse);
+  
+  // GetChat retrieves chat information
+  rpc GetChat(GetChatRequest) returns (GetChatResponse);
+  
+  // ListUserChats lists all chats for a user
+  rpc ListUserChats(ListUserChatsRequest) returns (ListUserChatsResponse);
+  
+  // ListChatMembers lists all participants in a chat
+  rpc ListChatMembers(ListChatMembersRequest) returns (ListChatMembersResponse);
+  
+  // SendMessage sends a message to a chat
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  
+  // ListMessages retrieves message history for a chat
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+  
+  // StreamMessages streams new messages in real-time (server-side streaming)
+  rpc StreamMessages(StreamMessagesRequest) returns (stream StreamMessagesResponse);
+}
+
