@@ -238,6 +238,44 @@ Each plugin generates different artifacts:
 - **protoc-gen-doc**: `<service>/pkg/docs/*.md` - Human-readable proto documentation
 - **protoc-gen-validate**: `<service>/pkg/*.pb.validate.go` - Validation rules enforcement
 
+## Linting Configuration
+
+### golangci-lint
+
+The project uses a comprehensive `.golangci.yml` configuration with:
+
+**Code Quality:**
+- Line length: 120 characters
+- Function length: max 60 lines, 40 statements
+- Cyclomatic complexity: max 15
+- Cognitive complexity: max 20
+
+**Enabled Linters (40+):**
+- **Core:** errcheck, gosimple, govet, staticcheck, unused
+- **Quality:** gocritic, revive, funlen, cyclop, gocognit
+- **Security:** gosec, sqlclosecheck
+- **Style:** gofmt, gofumpt, goimports, stylecheck, misspell
+- **Performance:** prealloc
+- **Microservices:** bodyclose, contextcheck, noctx
+- And many more...
+
+**Exclusions:**
+- Generated proto files (`*.pb.go`, `*.pb.gw.go`, `*.pb.validate.go`)
+- Test files have relaxed rules (length, complexity)
+- Init functions allowed in `cmd/` directories
+
+**Usage:**
+```bash
+# Run linter on all services
+make lint
+
+# Auto-fix issues where possible
+make lint-fix
+
+# Run on specific service
+cd <service> && golangci-lint run ./...
+```
+
 ## Troubleshooting
 
 ### "buf: command not found"

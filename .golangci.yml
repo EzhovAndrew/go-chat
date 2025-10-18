@@ -1,0 +1,173 @@
+version: 2
+
+linters-settings:
+  # Line length
+  lll:
+    line-length: 120
+    tab-width: 4
+
+  # Function length
+  funlen:
+    lines: 60
+    statements: 40
+
+  # Cyclomatic complexity
+  cyclop:
+    max-complexity: 15
+    skip-tests: true
+
+  gocyclo:
+    min-complexity: 15
+
+  # Cognitive complexity
+  gocognit:
+    min-complexity: 20
+
+  # Error wrapping
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  # Security
+  gosec:
+    severity: medium
+    confidence: medium
+    excludes:
+      - G104 # Audit errors not checked - we use errcheck for this
+      - G304 # File path provided as taint input - sometimes necessary
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+      - experimental
+      - opinionated
+    disabled-checks:
+      - whyNoLint
+      - hugeParam
+
+linters:
+  disable-all: true
+  enable:
+    # Enabled by default
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+    # Additional quality linters
+    - bodyclose
+    - contextcheck
+    - cyclop
+    - dupl
+    - durationcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - funlen
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gosec
+    - lll
+    - misspell
+    - nakedret
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
+    - sqlclosecheck
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - wastedassign
+    - whitespace
+
+issues:
+  # Exclude generated files
+  exclude-rules:
+    - path: '\.pb\.go$'
+      linters:
+        - all
+    - path: '\.pb\.gw\.go$'
+      linters:
+        - all
+    - path: '\.pb\.validate\.go$'
+      linters:
+        - all
+    - path: '_test\.go'
+      linters:
+        - funlen
+        - gocognit
+        - cyclop
+        - dupl
+        - gosec
+    - path: 'cmd/'
+      linters:
+        - gochecknoinits
+    - linters:
+        - stylecheck
+      text: "ST1003:"
+    - linters:
+        - revive
+      text: "exported: exported"
+
+  # Maximum issues count per one linter
+  max-issues-per-linter: 50
+
+  # Maximum count of issues with the same text
+  max-same-issues: 3
+
+  # Show all issues from a linter
+  new: false
+
+  # Fix found issues (if supported by the linter)
+  fix: false
+
+run:
+  # Timeout for analysis
+  timeout: 5m
+
+  # Include test files
+  tests: true
+
+  # Skip directories
+  skip-dirs:
+    - bin
+    - vendor
+    - deployments
+
+  # Skip files
+  skip-files:
+    - ".*\\.pb\\.go$"
+    - ".*\\.pb\\.gw\\.go$"
+    - ".*\\.pb\\.validate\\.go$"
+
+  # Allow multiple parallel golangci-lint instances
+  allow-parallel-runners: true
+
+output:
+  # Format: colored-line-number|line-number|json|tab|checkstyle|code-climate
+  format: colored-line-number
+
+  # Print lines of code with issue
+  print-issued-lines: true
+
+  # Print linter name in the end of issue text
+  print-linter-name: true
+
+  # Make issues output unique by line
+  uniq-by-line: true
+
+  # Sort results by: filepath, line and column
+  sort-results: true
+

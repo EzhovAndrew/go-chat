@@ -5,7 +5,7 @@ lint: ## Run golangci-lint on all services
 	@echo "Running golangci-lint..."
 	@for service in $(SERVICES); do \
 		echo "Linting $$service..."; \
-		cd $$service && golangci-lint run ./... && cd ..; \
+		cd $$service && golangci-lint run ./... && cd .. || exit 1; \
 	done
 	@echo "Linting completed ✓"
 
@@ -14,7 +14,7 @@ lint-fix: ## Run golangci-lint with auto-fix
 	@echo "Running golangci-lint with auto-fix..."
 	@for service in $(SERVICES); do \
 		echo "Linting $$service..."; \
-		cd $$service && golangci-lint run --fix ./... && cd ..; \
+		cd $$service && golangci-lint run --fix ./... && cd .. || exit 1; \
 	done
 	@echo "Linting with auto-fix completed ✓"
 
@@ -23,7 +23,7 @@ test: ## Run tests for all services
 	@echo "Running tests..."
 	@for service in $(SERVICES); do \
 		echo "Testing $$service..."; \
-		cd $$service && go test -v -race -cover ./... && cd ..; \
+		go test -v -race -cover ./$$service/...; \
 	done
 	@echo "Tests completed ✓"
 
@@ -32,7 +32,7 @@ test-coverage: ## Run tests with coverage report
 	@echo "Running tests with coverage..."
 	@for service in $(SERVICES); do \
 		echo "Testing $$service..."; \
-		cd $$service && go test -v -race -coverprofile=coverage.out -covermode=atomic ./... && cd ..; \
+		go test -v -race -coverprofile=$$service/coverage.out -covermode=atomic ./$$service/...; \
 	done
 	@echo "Tests with coverage completed ✓"
 
@@ -41,7 +41,7 @@ build: ## Build all services
 	@echo "Building all services..."
 	@for service in $(SERVICES); do \
 		echo "Building $$service..."; \
-		cd $$service && go build -o bin/$$service ./cmd/... && cd ..; \
+		go build -o $$service/bin/$$service ./$$service/cmd/...; \
 	done
 	@echo "Build completed ✓"
 
@@ -59,7 +59,7 @@ mod-tidy: ## Run go mod tidy for all services
 	@echo "Running go mod tidy..."
 	@for service in $(SERVICES); do \
 		echo "Tidying $$service..."; \
-		cd $$service && go mod tidy && cd ..; \
+		cd $$service && go mod tidy && cd .. || exit 1; \
 	done
 	@echo "Go mod tidy completed ✓"
 
@@ -68,7 +68,7 @@ mod-download: ## Download dependencies for all services
 	@echo "Downloading dependencies..."
 	@for service in $(SERVICES); do \
 		echo "Downloading dependencies for $$service..."; \
-		cd $$service && go mod download && cd ..; \
+		cd $$service && go mod download && cd .. || exit 1; \
 	done
 	@echo "Dependencies downloaded ✓"
 
