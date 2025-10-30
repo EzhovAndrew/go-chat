@@ -4,6 +4,8 @@ managed:
   override:
     - file_option: go_package_prefix
       value: github.com/go-chat/users/pkg
+inputs:
+  - directory: users/proto
 plugins:
   - local: protoc-gen-go
     out: users/pkg

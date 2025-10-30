@@ -76,6 +76,18 @@ install-vendor-protos: $(VENDOR_PROTO) ## Clone vendor proto dependencies
 	else \
 		echo "protovalidate already exists, skipping..."; \
 	fi
+	@if [ ! -d "$(VENDOR_PROTO)/grpc-gateway" ]; then \
+		echo "Cloning grpc-gateway for OpenAPI annotations..."; \
+		git clone --depth 1 --branch v$(PROTOC_GEN_GRPC_GATEWAY_VERSION) https://github.com/grpc-ecosystem/grpc-gateway.git $(VENDOR_PROTO)/grpc-gateway-tmp; \
+		mkdir -p $(VENDOR_PROTO)/grpc-gateway; \
+		cp -r $(VENDOR_PROTO)/grpc-gateway-tmp/protoc-gen-openapiv2 $(VENDOR_PROTO)/grpc-gateway/; \
+		rm -rf $(VENDOR_PROTO)/grpc-gateway-tmp; \
+		echo "Cleaning non-proto files from grpc-gateway..."; \
+		find $(VENDOR_PROTO)/grpc-gateway -type f ! -name "*.proto" -delete; \
+		find $(VENDOR_PROTO)/grpc-gateway -type d -empty -delete; \
+	else \
+		echo "grpc-gateway already exists, skipping..."; \
+	fi
 	@echo "Vendor proto files installed successfully"
 
 .PHONY: clean-vendor-protos
@@ -94,6 +106,16 @@ update-vendor-protos: ## Update vendor proto files
 	@if [ -d "$(VENDOR_PROTO)/protovalidate" ]; then \
 		echo "Updating protovalidate..."; \
 		cd $(VENDOR_PROTO)/protovalidate && git pull; \
+	fi
+	@if [ -d "$(VENDOR_PROTO)/grpc-gateway" ]; then \
+		echo "Updating grpc-gateway..."; \
+		rm -rf $(VENDOR_PROTO)/grpc-gateway; \
+		git clone --depth 1 --branch v$(PROTOC_GEN_GRPC_GATEWAY_VERSION) https://github.com/grpc-ecosystem/grpc-gateway.git $(VENDOR_PROTO)/grpc-gateway-tmp; \
+		mkdir -p $(VENDOR_PROTO)/grpc-gateway; \
+		cp -r $(VENDOR_PROTO)/grpc-gateway-tmp/protoc-gen-openapiv2 $(VENDOR_PROTO)/grpc-gateway/; \
+		rm -rf $(VENDOR_PROTO)/grpc-gateway-tmp; \
+		find $(VENDOR_PROTO)/grpc-gateway -type f ! -name "*.proto" -delete; \
+		find $(VENDOR_PROTO)/grpc-gateway -type d -empty -delete; \
 	fi
 	@echo "Vendor proto files updated ✓"
 
@@ -114,7 +136,8 @@ check-tools: ## Check if all required tools are installed
 	@command -v protoc-gen-openapiv2 >/dev/null 2>&1 || { echo "protoc-gen-openapiv2 is not installed. Run 'make install-protoc-plugins'"; exit 1; }
 	@command -v protoc-gen-doc >/dev/null 2>&1 || { echo "protoc-gen-doc is not installed. Run 'make install-protoc-plugins'"; exit 1; }
 	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint is not installed. Run 'make install-golangci-lint'"; exit 1; }
-	@test -d $(VENDOR_PROTO)/googleapis || { echo "Vendor protos not installed. Run 'make install-vendor-protos'"; exit 1; }
-	@test -d $(VENDOR_PROTO)/protovalidate || { echo "Vendor protos not installed. Run 'make install-vendor-protos'"; exit 1; }
+	@test -d $(VENDOR_PROTO)/googleapis || { echo "googleapis vendor protos not installed. Run 'make install-vendor-protos'"; exit 1; }
+	@test -d $(VENDOR_PROTO)/protovalidate || { echo "protovalidate vendor protos not installed. Run 'make install-vendor-protos'"; exit 1; }
+	@test -d $(VENDOR_PROTO)/grpc-gateway || { echo "grpc-gateway vendor protos not installed. Run 'make install-vendor-protos'"; exit 1; }
 	@echo "All tools are installed ✓"
 

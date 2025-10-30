@@ -1,7 +1,7 @@
 # Protocol Buffers generation and management
 
 # Service directories
-SERVICES := auth users social chat notifications gateway
+SERVICES := auth users social chat notifications
 
 .PHONY: proto-gen
 proto-gen: ## Generate Go code from proto files for all services
@@ -41,12 +41,6 @@ proto-gen-notifications: ## Generate proto files for notifications service
 	@echo "Generating proto files for notifications service..."
 	@buf generate --template notifications/buf.gen.yaml
 	@echo "Notifications proto generation completed ✓"
-
-.PHONY: proto-gen-gateway
-proto-gen-gateway: ## Generate proto files for gateway
-	@echo "Generating proto files for gateway..."
-	@buf generate --template gateway/buf.gen.yaml
-	@echo "Gateway proto generation completed ✓"
 
 .PHONY: proto-lint
 proto-lint: ## Lint all proto files

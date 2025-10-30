@@ -3,37 +3,109 @@ syntax = "proto3";
 package api.users.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/go-chat/users/pkg/api/v1;usersv1";
 
 // UserProfile represents a user's profile information
 message UserProfile {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "User Profile"
+      description: "User profile information including nickname, bio, and avatar"
+    }
+    example: "{\"user_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"nickname\": \"john_doe\", \"bio\": \"Software engineer and coffee enthusiast\", \"avatar_url\": \"https://cdn.example.com/avatars/john.jpg\"}"
+  };
+  
   // Unique identifier linking profile to auth user account
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Unique identifier linking profile to auth user account"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
   // Display name shown to other users (unique, searchable)
-  string nickname = 2;
+  string nickname = 2 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Display name shown to other users (unique, 1-50 characters)"
+      example: "\"john_doe\""
+    }
+  ];
   // User's personal description or status message
-  string bio = 3;
+  string bio = 3 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's personal description or status message (max 500 characters)"
+      example: "\"Software engineer and coffee enthusiast\""
+    }
+  ];
   // URL to user's profile picture (absolute URL to CDN or storage)
-  string avatar_url = 4;
+  string avatar_url = 4 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "URL to user's profile picture"
+      example: "\"https://cdn.example.com/avatars/john.jpg\""
+      format: "uri"
+    }
+  ];
 }
 
 // CreateProfileRequest contains data for creating a user profile
 message CreateProfileRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Create Profile Request"
+      description: "Request to create a new user profile"
+      required: ["user_id", "nickname"]
+    }
+    example: "{\"user_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"nickname\": \"john_doe\", \"bio\": \"Software engineer\", \"avatar_url\": \"https://cdn.example.com/avatars/john.jpg\"}"
+  };
+  
   // User account ID from auth service (must be authenticated user)
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User account ID from auth service"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
   // Desired display name (must be unique across platform)
-  string nickname = 2 [(buf.validate.field).string = {
-    min_len: 1,
-    max_len: 50
-  }];
+  string nickname = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 50
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Desired display name (must be unique, 1-50 characters)"
+      example: "\"john_doe\""
+    }
+  ];
   // Optional personal description or status
-  string bio = 3 [(buf.validate.field).string.max_len = 500];
+  string bio = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).string.max_len = 500,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Optional personal description or status (max 500 characters)"
+      example: "\"Software engineer and coffee enthusiast\""
+    }
+  ];
   // Optional URL to profile picture
-  string avatar_url = 4 [(buf.validate.field).string = {
-    uri: true,
-    max_len: 2048
-  }];
+  string avatar_url = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).string = {
+      uri: true,
+      max_len: 2048
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Optional URL to profile picture"
+      example: "\"https://cdn.example.com/avatars/john.jpg\""
+      format: "uri"
+    }
+  ];
 }
 
 // CreateProfileResponse returns the created profile
@@ -45,13 +117,16 @@ message CreateProfileResponse {
 // UpdateProfileRequest contains data for updating a user profile
 message UpdateProfileRequest {
   // Target user ID (must match authenticated user)
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
   // New display name (optional, if empty keeps current)
-  string nickname = 2;
+  string nickname = 2 [(google.api.field_behavior) = OPTIONAL];
   // New bio text (optional, if empty keeps current)
-  string bio = 3;
+  string bio = 3 [(google.api.field_behavior) = OPTIONAL];
   // New avatar URL (optional, if empty keeps current)
-  string avatar_url = 4;
+  string avatar_url = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // UpdateProfileResponse returns the updated profile
@@ -63,7 +138,10 @@ message UpdateProfileResponse {
 // GetProfileByIDRequest contains the user ID to look up
 message GetProfileByIDRequest {
   // User ID to retrieve profile for
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // GetProfileByIDResponse returns the requested profile
@@ -75,13 +153,16 @@ message GetProfileByIDResponse {
 // GetProfilesByIDsRequest contains multiple user IDs for batch lookup
 message GetProfilesByIDsRequest {
   // List of user IDs to fetch (max 100 for performance)
-  repeated string user_ids = 1 [(buf.validate.field).repeated = {
-    min_items: 1,
-    max_items: 100,
-    items: {
-      string: {uuid: true}
+  repeated string user_ids = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).repeated = {
+      min_items: 1,
+      max_items: 100,
+      items: {
+        string: {uuid: true}
+      }
     }
-  }];
+  ];
 }
 
 // GetProfilesByIDsResponse returns multiple profiles
@@ -93,7 +174,7 @@ message GetProfilesByIDsResponse {
 // GetProfileByNicknameRequest contains the nickname to look up
 message GetProfileByNicknameRequest {
   // Exact nickname to search for (case-sensitive)
-  string nickname = 1;
+  string nickname = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // GetProfileByNicknameResponse returns the requested profile
@@ -104,18 +185,47 @@ message GetProfileByNicknameResponse {
 
 // SearchByNicknameRequest contains search parameters
 message SearchByNicknameRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Search By Nickname Request"
+      description: "Request to search for user profiles by nickname"
+      required: ["query"]
+    }
+    example: "{\"query\": \"john\", \"limit\": 20}"
+  };
+  
   // Search query string (partial match on nicknames)
-  string query = 1 [(buf.validate.field).string = {
-    min_len: 1,
-    max_len: 100
-  }];
+  string query = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 100
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Search query string for partial match on nicknames (1-100 characters)"
+      example: "\"john\""
+    }
+  ];
   // Pagination cursor from previous response (empty for first page)
-  string cursor = 2;
+  string cursor = 2 [
+    (google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Pagination cursor from previous response (omit for first page)"
+      example: "\"eyJsYXN0X2lkIjoiMTIzIn0=\""
+    }
+  ];
   // Maximum number of results to return per page
-  int32 limit = 3 [(buf.validate.field).int32 = {
-    gte: 1,
-    lte: 100
-  }];
+  int32 limit = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Maximum number of results to return per page (1-100, default: 20)"
+      example: "20"
+    }
+  ];
 }
 
 // SearchByNicknameResponse returns search results with pagination

@@ -3,7 +3,9 @@ syntax = "proto3";
 package api.social.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/go-chat/social/pkg/api/v1;socialv1";
 
@@ -23,22 +25,79 @@ enum RelationshipStatus {
 
 // FriendRequest represents a friend request
 message FriendRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Friend Request"
+      description: "Friend request between two users"
+    }
+    example: "{\"request_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"requester_id\": \"123e4567-e89b-12d3-a456-426614174000\", \"target_id\": \"789e0123-e45f-67g8-h901-234567890abc\", \"created_at\": \"2025-01-15T10:30:00Z\", \"status\": \"pending\"}"
+  };
+  
   // Unique identifier for this friend request
-  string request_id = 1 [(buf.validate.field).string.uuid = true];
+  string request_id = 1 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Unique identifier for this friend request"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
   // User ID who initiated the friend request
-  string requester_id = 2 [(buf.validate.field).string.uuid = true];
+  string requester_id = 2 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User ID who initiated the friend request"
+      example: "\"123e4567-e89b-12d3-a456-426614174000\""
+      format: "uuid"
+    }
+  ];
   // User ID who received the friend request
-  string target_id = 3 [(buf.validate.field).string.uuid = true];
+  string target_id = 3 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User ID who received the friend request"
+      example: "\"789e0123-e45f-67g8-h901-234567890abc\""
+      format: "uuid"
+    }
+  ];
   // Timestamp when request was created
-  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp created_at = 4 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Timestamp when request was created"
+      example: "\"2025-01-15T10:30:00Z\""
+      format: "date-time"
+    }
+  ];
   // Current status (pending, accepted, declined)
-  string status = 5;
+  string status = 5 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Current status of the friend request"
+      example: "\"pending\""
+    }
+  ];
 }
 
 // SendFriendRequestRequest contains the target user ID
 message SendFriendRequestRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Send Friend Request"
+      description: "Request to send a friend request to another user"
+      required: ["target_user_id"]
+    }
+    example: "{\"target_user_id\": \"789e0123-e45f-67g8-h901-234567890abc\"}"
+  };
+  
   // User ID to send friend request to
-  string target_user_id = 1 [(buf.validate.field).string.uuid = true];
+  string target_user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User ID to send friend request to"
+      example: "\"789e0123-e45f-67g8-h901-234567890abc\""
+      format: "uuid"
+    }
+  ];
 }
 
 // SendFriendRequestResponse returns the created request
@@ -50,14 +109,20 @@ message SendFriendRequestResponse {
 // ListRequestsRequest contains pagination parameters
 message ListRequestsRequest {
   // User ID to get pending friend requests for
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
   // Pagination cursor from previous response (empty for first page)
-  string cursor = 2;
+  string cursor = 2 [(google.api.field_behavior) = OPTIONAL];
   // Maximum number of requests to return
-  int32 limit = 3 [(buf.validate.field).int32 = {
-    gte: 1,
-    lte: 100
-  }];
+  int32 limit = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
 }
 
 // ListRequestsResponse returns pending friend requests with pagination
@@ -71,7 +136,10 @@ message ListRequestsResponse {
 // AcceptFriendRequestRequest contains the request ID to accept
 message AcceptFriendRequestRequest {
   // Friend request ID to accept (must be target of request)
-  string request_id = 1 [(buf.validate.field).string.uuid = true];
+  string request_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // AcceptFriendRequestResponse returns the accepted request
@@ -83,7 +151,10 @@ message AcceptFriendRequestResponse {
 // DeclineFriendRequestRequest contains the request ID to decline
 message DeclineFriendRequestRequest {
   // Friend request ID to decline (must be target of request)
-  string request_id = 1 [(buf.validate.field).string.uuid = true];
+  string request_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // DeclineFriendRequestResponse returns the declined request
@@ -95,7 +166,10 @@ message DeclineFriendRequestResponse {
 // RemoveFriendRequest contains the friend's user ID to remove
 message RemoveFriendRequest {
   // Friend's user ID to remove from friends list
-  string friend_user_id = 1 [(buf.validate.field).string.uuid = true];
+  string friend_user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // RemoveFriendResponse is empty on success
@@ -104,14 +178,20 @@ message RemoveFriendResponse {}  // Intentionally empty
 // ListFriendsRequest contains pagination parameters
 message ListFriendsRequest {
   // User ID to get friends list for
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
   // Pagination cursor from previous response (empty for first page)
-  string cursor = 2;
+  string cursor = 2 [(google.api.field_behavior) = OPTIONAL];
   // Maximum number of friends to return
-  int32 limit = 3 [(buf.validate.field).int32 = {
-    gte: 1,
-    lte: 100
-  }];
+  int32 limit = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
 }
 
 // ListFriendsResponse returns a list of friend user IDs with pagination
@@ -125,7 +205,10 @@ message ListFriendsResponse {
 // BlockUserRequest contains the user ID to block
 message BlockUserRequest {
   // User ID to block (prevents all interactions, removes friendship)
-  string target_user_id = 1 [(buf.validate.field).string.uuid = true];
+  string target_user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // BlockUserResponse is empty on success
@@ -134,7 +217,10 @@ message BlockUserResponse {}  // Intentionally empty
 // UnblockUserRequest contains the user ID to unblock
 message UnblockUserRequest {
   // User ID to unblock (allows interactions again)
-  string target_user_id = 1 [(buf.validate.field).string.uuid = true];
+  string target_user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // UnblockUserResponse is empty on success
@@ -143,9 +229,15 @@ message UnblockUserResponse {}  // Intentionally empty
 // CheckRelationshipRequest contains user IDs to check relationship
 message CheckRelationshipRequest {
   // First user ID
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
   // Second user ID to check relationship with
-  string target_user_id = 2 [(buf.validate.field).string.uuid = true];
+  string target_user_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // CheckRelationshipResponse returns the relationship status

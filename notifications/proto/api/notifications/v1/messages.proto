@@ -3,7 +3,9 @@ syntax = "proto3";
 package api.notifications.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/go-chat/notifications/pkg/api/v1;notificationsv1";
 
@@ -21,35 +23,94 @@ enum NotificationType {
 
 // Notification represents a notification
 message Notification {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Notification"
+      description: "User notification with type, title, body, and metadata"
+    }
+    example: "{\"notification_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"user_id\": \"123e4567-e89b-12d3-a456-426614174000\", \"type\": \"NOTIFICATION_TYPE_MESSAGE\", \"title\": \"New Message\", \"body\": \"John sent you a message\", \"data\": \"{\\\"chat_id\\\": \\\"789e0123\\\"}\", \"created_at\": \"2025-01-15T10:30:00Z\", \"read\": false}"
+  };
+  
   // Unique identifier for this notification
-  string notification_id = 1 [(buf.validate.field).string.uuid = true];
+  string notification_id = 1 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Unique identifier for this notification"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
   // User ID who should receive this notification
-  string user_id = 2 [(buf.validate.field).string.uuid = true];
+  string user_id = 2 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User ID who should receive this notification"
+      example: "\"123e4567-e89b-12d3-a456-426614174000\""
+      format: "uuid"
+    }
+  ];
   // Type of notification (message, friend_request, etc.)
-  NotificationType type = 3;
+  NotificationType type = 3 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Type of notification (MESSAGE, FRIEND_REQUEST, FRIEND_ACCEPTED)"
+      example: "\"NOTIFICATION_TYPE_MESSAGE\""
+    }
+  ];
   // Notification title shown to user
-  string title = 4;
+  string title = 4 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Notification title shown to user"
+      example: "\"New Message\""
+    }
+  ];
   // Notification body text with details
-  string body = 5;
+  string body = 5 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Notification body text with details"
+      example: "\"John sent you a message: Hello!\""
+    }
+  ];
   // JSON-encoded additional data (chat_id, sender_id, etc.)
-  string data = 6;
+  string data = 6 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "JSON-encoded additional data (structure varies by notification type)"
+      example: "\"{\\\"chat_id\\\": \\\"789e0123-e45f-67g8-h901-234567890abc\\\", \\\"sender_id\\\": \\\"123e4567\\\"}\""
+    }
+  ];
   // Timestamp when notification was created
-  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp created_at = 7 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Timestamp when notification was created"
+      example: "\"2025-01-15T10:30:00Z\""
+      format: "date-time"
+    }
+  ];
   // Whether user has read this notification
-  bool read = 8;
+  bool read = 8 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Whether user has read this notification"
+      example: "false"
+    }
+  ];
 }
 
 // GetNotificationsRequest contains pagination parameters
 message GetNotificationsRequest {
   // User ID to get notification history for
-  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
   // Pagination cursor from previous response (empty for first page)
-  string cursor = 2;
+  string cursor = 2 [(google.api.field_behavior) = OPTIONAL];
   // Maximum number of notifications to return
-  int32 limit = 3 [(buf.validate.field).int32 = {
-    gte: 1,
-    lte: 100
-  }];
+  int32 limit = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
 }
 
 // GetNotificationsResponse returns notifications with pagination
@@ -63,7 +124,10 @@ message GetNotificationsResponse {
 // MarkAsReadRequest contains the notification ID to mark as read
 message MarkAsReadRequest {
   // Notification ID to mark as read (user must own notification)
-  string notification_id = 1 [(buf.validate.field).string.uuid = true];
+  string notification_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // MarkAsReadResponse is empty on success

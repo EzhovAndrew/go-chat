@@ -3,30 +3,58 @@ syntax = "proto3";
 package api.chat.v1;
 
 import "api/chat/v1/messages.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/go-chat/chat/pkg/api/v1;chatv1";
 
 // ChatService handles direct messaging and chat management
 service ChatService {
   // CreateDirectChat creates a 1-on-1 chat with another user
-  rpc CreateDirectChat(CreateDirectChatRequest) returns (CreateDirectChatResponse);
+  rpc CreateDirectChat(CreateDirectChatRequest) returns (CreateDirectChatResponse) {
+    option (google.api.http) = {
+      post: "/v1/chats"
+      body: "*"
+    };
+  }
   
   // GetChat retrieves chat information
-  rpc GetChat(GetChatRequest) returns (GetChatResponse);
+  rpc GetChat(GetChatRequest) returns (GetChatResponse) {
+    option (google.api.http) = {
+      get: "/v1/chats/{chat_id}"
+    };
+  }
   
   // ListUserChats lists all chats for a user
-  rpc ListUserChats(ListUserChatsRequest) returns (ListUserChatsResponse);
+  rpc ListUserChats(ListUserChatsRequest) returns (ListUserChatsResponse) {
+    option (google.api.http) = {
+      get: "/v1/chats"
+    };
+  }
   
   // ListChatMembers lists all participants in a chat
-  rpc ListChatMembers(ListChatMembersRequest) returns (ListChatMembersResponse);
+  rpc ListChatMembers(ListChatMembersRequest) returns (ListChatMembersResponse) {
+    option (google.api.http) = {
+      get: "/v1/chats/{chat_id}/members"
+    };
+  }
   
   // SendMessage sends a message to a chat
-  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/chats/{chat_id}/messages"
+      body: "*"
+    };
+  }
   
   // ListMessages retrieves message history for a chat
-  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
+    option (google.api.http) = {
+      get: "/v1/chats/{chat_id}/messages"
+    };
+  }
   
   // StreamMessages streams new messages in real-time (server-side streaming)
+  // Note: No HTTP mapping - Gateway implements custom WebSocket/SSE handler
   rpc StreamMessages(StreamMessagesRequest) returns (stream StreamMessagesResponse);
 }
 

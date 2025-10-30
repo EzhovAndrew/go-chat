@@ -3,36 +3,70 @@ syntax = "proto3";
 package api.social.v1;
 
 import "api/social/v1/messages.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/go-chat/social/pkg/api/v1;socialv1";
 
 // SocialService handles friend relationships and blocking
 service SocialService {
   // SendFriendRequest sends a friend request to another user
-  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse);
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/request"
+      body: "*"
+    };
+  }
   
   // ListRequests lists pending friend requests for a user
-  rpc ListRequests(ListRequestsRequest) returns (ListRequestsResponse);
+  rpc ListRequests(ListRequestsRequest) returns (ListRequestsResponse) {
+    option (google.api.http) = {
+      get: "/v1/friends/requests"
+    };
+  }
   
   // AcceptFriendRequest accepts a friend request
-  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (AcceptFriendRequestResponse);
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (AcceptFriendRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/requests/{request_id}/accept"
+    };
+  }
   
   // DeclineFriendRequest declines a friend request
-  rpc DeclineFriendRequest(DeclineFriendRequestRequest) returns (DeclineFriendRequestResponse);
+  rpc DeclineFriendRequest(DeclineFriendRequestRequest) returns (DeclineFriendRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/requests/{request_id}/decline"
+    };
+  }
   
   // RemoveFriend removes a user from friends list
-  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse);
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {
+    option (google.api.http) = {
+      delete: "/v1/friends/{friend_user_id}"
+    };
+  }
   
   // ListFriends lists all friends of a user
-  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse);
+  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse) {
+    option (google.api.http) = {
+      get: "/v1/friends"
+    };
+  }
   
   // BlockUser blocks a user
-  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse);
+  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse) {
+    option (google.api.http) = {
+      post: "/v1/users/{target_user_id}/block"
+    };
+  }
   
   // UnblockUser unblocks a user
-  rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse);
+  rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse) {
+    option (google.api.http) = {
+      delete: "/v1/users/{target_user_id}/block"
+    };
+  }
   
-  // CheckRelationship checks the relationship status between two users
+  // CheckRelationship checks the relationship status between two users (internal endpoint - no HTTP mapping)
   rpc CheckRelationship(CheckRelationshipRequest) returns (CheckRelationshipResponse);
 }
 
