@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-option go_package = "github.com/go-chat/auth/pkg/api/v1;authv1";
+option go_package = "github.com/go-chat/auth/pkg/api/auth/v1;authv1";
 
 // RegisterRequest contains user registration data
 message RegisterRequest {

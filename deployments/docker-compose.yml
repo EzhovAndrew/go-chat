@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  auth:
+    build:
+      context: ../auth
+      dockerfile: Dockerfile
+    container_name: go-chat-auth
+    ports:
+      - "9001:8080"
+    networks:
+      - go-chat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  users:
+    build:
+      context: ../users
+      dockerfile: Dockerfile
+    container_name: go-chat-users
+    ports:
+      - "9002:8080"
+    networks:
+      - go-chat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  chat:
+    build:
+      context: ../chat
+      dockerfile: Dockerfile
+    container_name: go-chat-chat
+    ports:
+      - "9003:8080"
+    networks:
+      - go-chat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  social:
+    build:
+      context: ../social
+      dockerfile: Dockerfile
+    container_name: go-chat-social
+    ports:
+      - "9004:8080"
+    networks:
+      - go-chat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  notifications:
+    build:
+      context: ../notifications
+      dockerfile: Dockerfile
+    container_name: go-chat-notifications
+    ports:
+      - "9005:8080"
+    networks:
+      - go-chat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: gateway/Dockerfile
+    container_name: go-chat-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - go-chat-network
+    depends_on:
+      - auth
+      - users
+      - chat
+      - social
+      - notifications
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  swagger-docs:
+    build:
+      context: ..
+      dockerfile: deployments/swagger-docs/Dockerfile
+    container_name: go-chat-swagger-docs
+    ports:
+      - "8081:8080"
+    networks:
+      - go-chat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    # Optional: In development, mount swagger files for hot-reload
+    # Uncomment for live updates without rebuild:
+    # volumes:
+    #   - ../swagger:/usr/share/nginx/html/specs:ro
+
+networks:
+  go-chat-network:
+    driver: bridge
+    name: go-chat-network
+

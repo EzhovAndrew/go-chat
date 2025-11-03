@@ -5,6 +5,7 @@
 include scripts/make/tools.mk
 include scripts/make/proto.mk
 include scripts/make/dev.mk
+include scripts/make/docker.mk
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'

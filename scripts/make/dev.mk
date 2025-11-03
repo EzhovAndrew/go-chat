@@ -41,7 +41,7 @@ build: ## Build all services
 	@echo "Building all services..."
 	@for service in $(SERVICES); do \
 		echo "Building $$service..."; \
-		go build -o $$service/bin/$$service ./$$service/cmd/...; \
+		cd $$service && go build -o bin/$$service ./cmd/main.go && cd .. || exit 1; \
 	done
 	@echo "Build completed ✓"
 

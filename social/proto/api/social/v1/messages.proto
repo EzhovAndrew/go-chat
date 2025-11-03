@@ -7,7 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-option go_package = "github.com/go-chat/social/pkg/api/v1;socialv1";
+option go_package = "github.com/go-chat/social/pkg/api/social/v1;socialv1";
 
 // RelationshipStatus represents the relationship between two users
 enum RelationshipStatus {

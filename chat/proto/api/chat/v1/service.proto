@@ -5,7 +5,7 @@ package api.chat.v1;
 import "api/chat/v1/messages.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/go-chat/chat/pkg/api/v1;chatv1";
+option go_package = "github.com/go-chat/chat/pkg/api/chat/v1;chatv1";
 
 // ChatService handles direct messaging and chat management
 service ChatService {

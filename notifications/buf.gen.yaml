@@ -1,9 +1,6 @@
 version: v2
 managed:
-  enabled: true
-  override:
-    - file_option: go_package_prefix
-      value: github.com/go-chat/notifications/pkg
+  enabled: false
 inputs:
   - directory: notifications/proto
 plugins:
@@ -19,7 +16,6 @@ plugins:
     out: notifications/pkg
     opt:
       - paths=source_relative
-      - standalone=true
   - local: protoc-gen-openapiv2
     out: swagger/notifications
     opt:

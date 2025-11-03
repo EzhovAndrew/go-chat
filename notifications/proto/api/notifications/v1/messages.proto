@@ -7,7 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-option go_package = "github.com/go-chat/notifications/pkg/api/v1;notificationsv1";
+option go_package = "github.com/go-chat/notifications/pkg/api/notifications/v1;notificationsv1";
 
 // NotificationType represents the type of notification
 enum NotificationType {
