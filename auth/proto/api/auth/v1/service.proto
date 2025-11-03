@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package api.auth.v1;
+
+import "api/auth/v1/messages.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/go-chat/auth/pkg/api/auth/v1;authv1";
+
+// AuthService handles user authentication and JWT token management
+service AuthService {
+  // Register creates a new user account
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+  
+  // Login authenticates a user and returns JWT tokens
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+  
+  // Refresh renews the access token using a refresh token
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/refresh"
+      body: "*"
+    };
+  }
+  
+  // GetPublicKeys returns public keys for JWT validation (internal endpoint - no HTTP mapping)
+  rpc GetPublicKeys(GetPublicKeysRequest) returns (GetPublicKeysResponse);
+}
+

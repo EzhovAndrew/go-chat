@@ -1,0 +1,28 @@
+version: v2
+managed:
+  enabled: false
+inputs:
+  - directory: social/proto
+plugins:
+  - local: protoc-gen-go
+    out: social/pkg
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: social/pkg
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-grpc-gateway
+    out: social/pkg
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-openapiv2
+    out: swagger/social
+    opt:
+      - allow_merge=true
+      - merge_file_name=social
+  - local: protoc-gen-doc
+    out: social/pkg/docs
+    opt:
+      - markdown,social.md
+

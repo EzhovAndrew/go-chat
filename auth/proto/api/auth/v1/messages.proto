@@ -1,0 +1,226 @@
+syntax = "proto3";
+
+package api.auth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/go-chat/auth/pkg/api/auth/v1;authv1";
+
+// RegisterRequest contains user registration data
+message RegisterRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Register Request"
+      description: "User registration request with email and password"
+      required: ["email", "password"]
+    }
+    example: "{\"email\": \"user@example.com\", \"password\": \"SecurePass123!\"}"
+  };
+  
+  // User's email address used for authentication and communication
+  string email = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string = {
+      email: true,
+      min_len: 3,
+      max_len: 255
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's email address for authentication and communication"
+      example: "\"user@example.com\""
+      format: "email"
+    }
+  ];
+  // User's password (plaintext, will be hashed server-side)
+  string password = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string = {
+      min_len: 8,
+      max_len: 72
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's password (8-72 characters, will be securely hashed)"
+      example: "\"SecurePass123!\""
+      format: "password"
+    }
+  ];
+}
+
+// RegisterResponse returns the created user ID
+message RegisterResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Register Response"
+      description: "Response containing the newly created user ID"
+    }
+    example: "{\"user_id\": \"550e8400-e29b-41d4-a716-446655440000\"}"
+  };
+  
+  // Unique identifier of the newly created user account
+  string user_id = 1 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Unique identifier of the newly created user account"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
+}
+
+// LoginRequest contains user credentials
+message LoginRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Login Request"
+      description: "User login request with email and password"
+      required: ["email", "password"]
+    }
+    example: "{\"email\": \"user@example.com\", \"password\": \"SecurePass123!\"}"
+  };
+  
+  // User's email address for authentication
+  string email = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string = {
+      email: true,
+      min_len: 3,
+      max_len: 255
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's email address for authentication"
+      example: "\"user@example.com\""
+      format: "email"
+    }
+  ];
+  // User's password for authentication
+  string password = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 72
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's password for authentication"
+      example: "\"SecurePass123!\""
+      format: "password"
+    }
+  ];
+}
+
+// LoginResponse returns authentication tokens and user ID
+message LoginResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Login Response"
+      description: "Response containing JWT tokens and user ID"
+    }
+    example: "{\"access_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\", \"refresh_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\", \"user_id\": \"550e8400-e29b-41d4-a716-446655440000\"}"
+  };
+  
+  // JWT access token for API authentication (short-lived, typically 15 minutes)
+  string access_token = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "JWT access token for API authentication (expires in 15 minutes)"
+      example: "\"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    }
+  ];
+  // JWT refresh token for obtaining new access tokens (long-lived, typically 30 days)
+  string refresh_token = 2 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "JWT refresh token for obtaining new access tokens (expires in 30 days)"
+      example: "\"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    }
+  ];
+  // Authenticated user's unique identifier
+  string user_id = 3 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Authenticated user's unique identifier"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
+}
+
+// RefreshRequest contains the refresh token
+message RefreshRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Refresh Request"
+      description: "Request to refresh access token using refresh token"
+      required: ["refresh_token"]
+    }
+    example: "{\"refresh_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"}"
+  };
+  
+  // Current valid refresh token to exchange for new access token
+  string refresh_token = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.min_len = 1,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Current valid refresh token to exchange for new access token"
+      example: "\"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    }
+  ];
+}
+
+// RefreshResponse returns new authentication tokens
+message RefreshResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Refresh Response"
+      description: "Response containing new JWT tokens after refresh"
+    }
+    example: "{\"access_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\", \"refresh_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\", \"user_id\": \"550e8400-e29b-41d4-a716-446655440000\"}"
+  };
+  
+  // New JWT access token with extended expiration
+  string access_token = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "New JWT access token (expires in 15 minutes)"
+      example: "\"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    }
+  ];
+  // New JWT refresh token (token rotation for security)
+  string refresh_token = 2 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "New JWT refresh token with token rotation for security (expires in 30 days)"
+      example: "\"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    }
+  ];
+  // User's unique identifier from the refresh token
+  string user_id = 3 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's unique identifier from the refresh token"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
+}
+
+// GetPublicKeysRequest is empty as it requires no parameters
+message GetPublicKeysRequest {}  // Intentionally empty
+
+// GetPublicKeysResponse returns the list of public keys for JWT validation
+message GetPublicKeysResponse {
+  // List of public keys in JWK format for validating JWT signatures
+  repeated PublicKey keys = 1;
+}
+
+// PublicKey represents a JSON Web Key for JWT validation
+message PublicKey {
+  // Key identifier used to match tokens with the correct public key
+  string kid = 1;
+  // Cryptographic algorithm used (e.g., RS256, ES256)
+  string alg = 2;
+  // Intended use of the key (typically "sig" for signature verification)
+  string use = 3;
+  // RSA modulus value (base64url-encoded)
+  string n = 4;
+  // RSA public exponent (base64url-encoded, commonly "AQAB")
+  string e = 5;
+}
+

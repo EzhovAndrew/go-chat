@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package api.users.v1;
+
+import "api/users/v1/messages.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/go-chat/users/pkg/api/users/v1;usersv1";
+
+// UserService handles user profile management and search
+service UserService {
+  // CreateProfile creates a new user profile
+  rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse) {
+    option (google.api.http) = {
+      post: "/v1/profile"
+      body: "*"
+    };
+  }
+  
+  // UpdateProfile updates an existing user profile
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
+    option (google.api.http) = {
+      put: "/v1/profile"
+      body: "*"
+    };
+  }
+  
+  // GetProfileByID retrieves a profile by user ID
+  rpc GetProfileByID(GetProfileByIDRequest) returns (GetProfileByIDResponse) {
+    option (google.api.http) = {
+      get: "/v1/profile/{user_id}"
+    };
+  }
+  
+  // GetProfilesByIDs retrieves multiple profiles by user IDs (batch operation)
+  rpc GetProfilesByIDs(GetProfilesByIDsRequest) returns (GetProfilesByIDsResponse) {
+    option (google.api.http) = {
+      post: "/v1/profiles/batch"
+      body: "*"
+    };
+  }
+  
+  // GetProfileByNickname retrieves a profile by nickname
+  rpc GetProfileByNickname(GetProfileByNicknameRequest) returns (GetProfileByNicknameResponse) {
+    option (google.api.http) = {
+      get: "/v1/profile/by-nickname/{nickname}"
+    };
+  }
+  
+  // SearchByNickname searches for profiles matching a query with pagination
+  rpc SearchByNickname(SearchByNicknameRequest) returns (SearchByNicknameResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/search"
+    };
+  }
+}
+

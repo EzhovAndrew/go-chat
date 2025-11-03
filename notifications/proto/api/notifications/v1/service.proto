@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package api.notifications.v1;
+
+import "api/notifications/v1/messages.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/go-chat/notifications/pkg/api/notifications/v1;notificationsv1";
+
+// NotificationService handles notification history and status
+// Note: Real-time notifications are delivered via SSE, not gRPC
+service NotificationService {
+  // GetNotifications retrieves notification history for a user
+  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/notifications"
+    };
+  }
+  
+  // MarkAsRead marks a notification as read
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse) {
+    option (google.api.http) = {
+      post: "/v1/notifications/{notification_id}/read"
+    };
+  }
+}
+

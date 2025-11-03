@@ -1,0 +1,269 @@
+syntax = "proto3";
+
+package api.chat.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/go-chat/chat/pkg/api/chat/v1;chatv1";
+
+// Chat represents a chat conversation
+message Chat {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Chat"
+      description: "Chat conversation between two users"
+    }
+    example: "{\"chat_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"participant_ids\": [\"123e4567-e89b-12d3-a456-426614174000\", \"789e0123-e45f-67g8-h901-234567890abc\"], \"created_at\": \"2025-01-15T10:30:00Z\"}"
+  };
+  
+  // Unique identifier for this chat conversation
+  string chat_id = 1 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Unique identifier for this chat conversation"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
+  // List of user IDs participating in this chat (2 users for direct chat)
+  repeated string participant_ids = 2 [
+    (buf.validate.field).repeated.items.string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "List of user IDs participating in this chat (2 users for direct chat)"
+      example: "[\"123e4567-e89b-12d3-a456-426614174000\", \"789e0123-e45f-67g8-h901-234567890abc\"]"
+    }
+  ];
+  // Timestamp when chat was created
+  google.protobuf.Timestamp created_at = 3 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Timestamp when chat was created"
+      example: "\"2025-01-15T10:30:00Z\""
+      format: "date-time"
+    }
+  ];
+}
+
+// Message represents a chat message
+message Message {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Message"
+      description: "Chat message with text content"
+    }
+    example: "{\"message_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"chat_id\": \"123e4567-e89b-12d3-a456-426614174000\", \"sender_id\": \"789e0123-e45f-67g8-h901-234567890abc\", \"text\": \"Hello! 👋\", \"created_at\": \"2025-01-15T10:30:00Z\"}"
+  };
+  
+  // Unique identifier for this message
+  string message_id = 1 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Unique identifier for this message"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
+  // Chat ID where this message was sent
+  string chat_id = 2 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Chat ID where this message was sent"
+      example: "\"123e4567-e89b-12d3-a456-426614174000\""
+      format: "uuid"
+    }
+  ];
+  // User ID of the message sender
+  string sender_id = 3 [
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User ID of the message sender"
+      example: "\"789e0123-e45f-67g8-h901-234567890abc\""
+      format: "uuid"
+    }
+  ];
+  // Message text content
+  string text = 4 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Message text content (supports unicode and emoji)"
+      example: "\"Hello! 👋 How are you doing today?\""
+    }
+  ];
+  // Timestamp when message was sent
+  google.protobuf.Timestamp created_at = 5 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Timestamp when message was sent"
+      example: "\"2025-01-15T10:30:00Z\""
+      format: "date-time"
+    }
+  ];
+}
+
+// CreateDirectChatRequest contains the other participant's ID
+message CreateDirectChatRequest {
+  // User ID to create direct chat with (must be friends with sender)
+  string participant_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// CreateDirectChatResponse returns the created chat ID
+message CreateDirectChatResponse {
+  // ID of created or existing chat between the two users
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// GetChatRequest contains the chat ID to retrieve
+message GetChatRequest {
+  // Chat ID to retrieve (user must be participant)
+  string chat_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// GetChatResponse returns the chat information
+message GetChatResponse {
+  // Requested chat details
+  Chat chat = 1;
+}
+
+// ListUserChatsRequest contains pagination parameters
+message ListUserChatsRequest {
+  // User ID to get chats for
+  string user_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Maximum number of chats to return
+  int32 limit = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
+}
+
+// ListUserChatsResponse returns user's chats with pagination
+message ListUserChatsResponse {
+  // List of chats ordered by most recent activity
+  repeated Chat chats = 1;
+  // Cursor for next page (empty if no more results)
+  string next_cursor = 2;
+}
+
+// ListChatMembersRequest contains the chat ID
+message ListChatMembersRequest {
+  // Chat ID to get members from (user must be participant)
+  string chat_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// ListChatMembersResponse returns the list of participant IDs
+message ListChatMembersResponse {
+  // List of user IDs participating in this chat
+  repeated string user_ids = 1 [(buf.validate.field).repeated.items.string.uuid = true];
+}
+
+// SendMessageRequest contains message data
+message SendMessageRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "Send Message Request"
+      description: "Request to send a message to a chat"
+      required: ["chat_id", "text", "idempotency_key"]
+    }
+    example: "{\"chat_id\": \"123e4567-e89b-12d3-a456-426614174000\", \"text\": \"Hello! 👋\", \"idempotency_key\": \"550e8400-e29b-41d4-a716-446655440000\"}"
+  };
+  
+  // Chat ID to send message to (user must be participant)
+  string chat_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Chat ID to send message to (user must be participant)"
+      example: "\"123e4567-e89b-12d3-a456-426614174000\""
+      format: "uuid"
+    }
+  ];
+  // Message text content (supports unicode, emoji)
+  string text = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 10000
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Message text content (1-10000 characters, supports unicode and emoji)"
+      example: "\"Hello! 👋 How are you doing today?\""
+    }
+  ];
+  // Idempotency key to prevent duplicate messages on retry
+  string idempotency_key = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Idempotency key to prevent duplicate messages on retry (use unique UUID per send attempt)"
+      example: "\"550e8400-e29b-41d4-a716-446655440000\""
+      format: "uuid"
+    }
+  ];
+}
+
+// SendMessageResponse returns the created message
+message SendMessageResponse {
+  // Sent message with ID and timestamp
+  Message message = 1;
+}
+
+// ListMessagesRequest contains pagination parameters
+message ListMessagesRequest {
+  // Chat ID to get messages from (user must be participant)
+  string chat_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
+  // Pagination cursor from previous response (empty for first page)
+  string cursor = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Maximum number of messages to return
+  int32 limit = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
+}
+
+// ListMessagesResponse returns messages with pagination
+message ListMessagesResponse {
+  // List of messages ordered by timestamp (newest first)
+  repeated Message messages = 1;
+  // Cursor for next page (empty if no more results)
+  string next_cursor = 2;
+}
+
+// StreamMessagesRequest contains the chat ID and optional timestamp
+message StreamMessagesRequest {
+  // Chat ID to stream messages from (user must be participant)
+  string chat_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).string.uuid = true
+  ];
+  // Only receive messages sent after this timestamp (empty for all new messages)
+  google.protobuf.Timestamp since = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// StreamMessagesResponse is streamed for each new message
+message StreamMessagesResponse {
+  // New message received in the chat
+  Message message = 1;
+}
+

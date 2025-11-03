@@ -1,0 +1,24 @@
+version: v2
+# Root workspace configuration
+# This file defines the workspace containing all service modules
+modules:
+  - path: auth/proto
+  - path: users/proto
+  - path: social/proto
+  - path: chat/proto
+  - path: notifications/proto
+  - path: vendor.protobuf/googleapis
+  - path: vendor.protobuf/protovalidate/proto/protovalidate
+  - path: vendor.protobuf/grpc-gateway
+lint:
+  use:
+    - STANDARD
+    - COMMENTS
+    - FILE_LOWER_SNAKE_CASE
+  ignore:
+    - vendor.protobuf/googleapis
+    - vendor.protobuf/protovalidate/proto/protovalidate
+    - vendor.protobuf/grpc-gateway
+breaking:
+  use:
+    - FILE
