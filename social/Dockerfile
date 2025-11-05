@@ -4,10 +4,16 @@ RUN apk add --no-cache git
 
 WORKDIR /build
 
-COPY go.mod go.sum ./
+# Copy lib module first (shared dependency)
+COPY lib/ ./lib/
+
+# Copy service files
+COPY social/go.mod social/go.sum ./social/
+WORKDIR /build/social
 RUN go mod download
 
-COPY . .
+# Copy rest of the service code
+COPY social/ ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o social-service ./cmd/main.go
 
@@ -19,7 +25,7 @@ RUN apk --no-cache add ca-certificates netcat-openbsd && \
 
 WORKDIR /app
 
-COPY --from=builder --chown=appuser:appuser /build/social-service .
+COPY --from=builder --chown=appuser:appuser /build/social/social-service .
 
 USER appuser
 

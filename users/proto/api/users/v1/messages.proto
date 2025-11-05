@@ -94,7 +94,7 @@ message CreateProfileRequest {
     }
   ];
   // Optional URL to profile picture
-  string avatar_url = 4 [
+  optional string avatar_url = 4 [
     (google.api.field_behavior) = OPTIONAL,
     (buf.validate.field).string = {
       uri: true,
