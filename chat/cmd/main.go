@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chat/chat/internal/handler"
 	chatv1 "github.com/go-chat/chat/pkg/api/chat/v1"
+	"github.com/go-chat/lib/grpc_middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -17,7 +18,28 @@ const (
 func main() {
 	log.Println("Chat Service starting...")
 
-	grpcServer := grpc.NewServer()
+	// Create middleware manager with validation enabled by default
+	mgr, err := grpc_middleware.NewManager()
+	if err != nil {
+		log.Fatalf("Failed to create middleware manager: %v", err)
+	}
+
+	// Get interceptor chains
+	unaryInterceptors, err := mgr.UnaryInterceptors()
+	if err != nil {
+		log.Fatalf("Failed to get unary interceptors: %v", err)
+	}
+
+	streamInterceptors, err := mgr.StreamInterceptors()
+	if err != nil {
+		log.Fatalf("Failed to get stream interceptors: %v", err)
+	}
+
+	// Create gRPC server with middleware
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(unaryInterceptors...),
+		grpc.ChainStreamInterceptor(streamInterceptors...),
+	)
 	chatHandler := handler.NewServer()
 	chatv1.RegisterChatServiceServer(grpcServer, chatHandler)
 	reflection.Register(grpcServer)
@@ -32,4 +54,3 @@ func main() {
 		log.Fatalf("Failed to serve: %v", err)
 	}
 }
-

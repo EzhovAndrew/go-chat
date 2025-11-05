@@ -27,6 +27,12 @@ test: ## Run tests for all services
 	done
 	@echo "Tests completed ✓"
 
+.PHONY: test-integration
+test-integration: ## Run integration tests (requires running services)
+	@echo "Running integration tests..."
+	@./integration_tests/validation/run_tests.sh
+	@echo "Integration tests completed ✓"
+
 .PHONY: test-coverage
 test-coverage: ## Run tests with coverage report
 	@echo "Running tests with coverage..."

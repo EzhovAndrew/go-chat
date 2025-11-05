@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/go-chat/lib/grpc_middleware"
 	"github.com/go-chat/notifications/internal/handler"
 	notificationsv1 "github.com/go-chat/notifications/pkg/api/notifications/v1"
 	"google.golang.org/grpc"
@@ -17,7 +18,28 @@ const (
 func main() {
 	log.Println("Notifications Service starting...")
 
-	grpcServer := grpc.NewServer()
+	// Create middleware manager with validation enabled by default
+	mgr, err := grpc_middleware.NewManager()
+	if err != nil {
+		log.Fatalf("Failed to create middleware manager: %v", err)
+	}
+
+	// Get interceptor chains
+	unaryInterceptors, err := mgr.UnaryInterceptors()
+	if err != nil {
+		log.Fatalf("Failed to get unary interceptors: %v", err)
+	}
+
+	streamInterceptors, err := mgr.StreamInterceptors()
+	if err != nil {
+		log.Fatalf("Failed to get stream interceptors: %v", err)
+	}
+
+	// Create gRPC server with middleware
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(unaryInterceptors...),
+		grpc.ChainStreamInterceptor(streamInterceptors...),
+	)
 	notificationHandler := handler.NewServer()
 	notificationsv1.RegisterNotificationServiceServer(grpcServer, notificationHandler)
 	reflection.Register(grpcServer)
@@ -32,4 +54,3 @@ func main() {
 		log.Fatalf("Failed to serve: %v", err)
 	}
 }
-

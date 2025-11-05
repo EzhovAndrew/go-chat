@@ -18,13 +18,18 @@ func (s *Server) CreateProfile(ctx context.Context, req *usersv1.CreateProfileRe
 	// TODO: Store profile in database
 	// TODO: Return INVALID_ARGUMENT for invalid inputs
 
+	// Handle optional avatar_url field
+	avatarUrl := ""
+	if req.AvatarUrl != nil {
+		avatarUrl = *req.AvatarUrl
+	}
+
 	return &usersv1.CreateProfileResponse{
 		Profile: &usersv1.UserProfile{
 			UserId:    req.UserId,
 			Nickname:  req.Nickname,
 			Bio:       req.Bio,
-			AvatarUrl: req.AvatarUrl,
+			AvatarUrl: avatarUrl,
 		},
 	}, nil
 }
-
