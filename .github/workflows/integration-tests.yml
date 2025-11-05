@@ -27,7 +27,7 @@ jobs:
           echo "$HOME/go/bin" >> $GITHUB_PATH
       
       - name: Generate proto files
-        run: make proto
+        run: make proto-gen
       
       - name: Start services
         run: make docker-up
