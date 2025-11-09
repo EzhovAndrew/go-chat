@@ -2,34 +2,38 @@ package handler
 
 import (
 	"context"
-	"log"
 
+	"github.com/go-chat/users/internal/domain"
 	usersv1 "github.com/go-chat/users/pkg/api/users/v1"
 )
 
 // CreateProfile creates a new user profile
-// Returns dummy profile until database integration is added
 func (s *Server) CreateProfile(ctx context.Context, req *usersv1.CreateProfileRequest) (*usersv1.CreateProfileResponse, error) {
-	log.Printf("CreateProfile called for user_id: %s, nickname: %s", req.UserId, req.Nickname)
-
-	// TODO: Validate nickname format (^[a-z0-9_]{3,20}$)
-	// TODO: Check if profile already exists for user_id (ALREADY_EXISTS error)
-	// TODO: Check if nickname is already taken (ALREADY_EXISTS error)
-	// TODO: Store profile in database
-	// TODO: Return INVALID_ARGUMENT for invalid inputs
-
 	// Handle optional avatar_url field
-	avatarUrl := ""
+	avatarURL := ""
 	if req.AvatarUrl != nil {
-		avatarUrl = *req.AvatarUrl
+		avatarURL = *req.AvatarUrl
 	}
 
+	// Delegate to service layer
+	profile, err := s.userService.CreateProfile(
+		ctx,
+		domain.NewUserID(req.UserId),
+		req.Nickname,
+		req.Bio,
+		avatarURL,
+	)
+	if err != nil {
+		return nil, err // Middleware will map domain error to gRPC status
+	}
+
+	// Convert domain model to proto message
 	return &usersv1.CreateProfileResponse{
 		Profile: &usersv1.UserProfile{
-			UserId:    req.UserId,
-			Nickname:  req.Nickname,
-			Bio:       req.Bio,
-			AvatarUrl: avatarUrl,
+			UserId:    profile.UserID.String(),
+			Nickname:  profile.Nickname,
+			Bio:       profile.Bio,
+			AvatarUrl: profile.AvatarURL,
 		},
 	}, nil
 }

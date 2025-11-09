@@ -2,23 +2,26 @@ package handler
 
 import (
 	"context"
-	"log"
 
+	"github.com/go-chat/notifications/internal/domain"
 	notificationsv1 "github.com/go-chat/notifications/pkg/api/notifications/v1"
 )
 
 // MarkAsRead marks a notification as read
-// Returns empty response until database integration is added
 func (s *Server) MarkAsRead(ctx context.Context, req *notificationsv1.MarkAsReadRequest) (*notificationsv1.MarkAsReadResponse, error) {
-	log.Printf("MarkAsRead called for notification_id: %s", req.NotificationId)
-
 	// TODO: Extract authenticated user_id from JWT
-	// TODO: Query notification from database
-	// TODO: Return NOT_FOUND if notification doesn't exist
-	// TODO: Verify notification belongs to authenticated user (PERMISSION_DENIED if not)
-	// TODO: Update is_read to true
-	// TODO: Return empty response
+	userID := domain.NewUserID("authenticated-user-id") // Placeholder
 
+	// Delegate to service layer
+	err := s.notificationService.MarkAsRead(
+		ctx,
+		domain.NewNotificationID(req.NotificationId),
+		userID,
+	)
+	if err != nil {
+		return nil, err // Middleware will map domain error to gRPC status
+	}
+
+	// Return empty response on success (as per proto)
 	return &notificationsv1.MarkAsReadResponse{}, nil
 }
-

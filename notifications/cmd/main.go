@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-chat/lib/grpc_middleware"
 	"github.com/go-chat/notifications/internal/handler"
+	grpcmw "github.com/go-chat/notifications/internal/middleware/grpc"
+	"github.com/go-chat/notifications/internal/service"
 	notificationsv1 "github.com/go-chat/notifications/pkg/api/notifications/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -30,6 +32,10 @@ func main() {
 		log.Fatalf("Failed to get unary interceptors: %v", err)
 	}
 
+	// Add notifications service error mapper middleware
+	notificationsErrorMapper := grpcmw.ErrorMapperInterceptor()
+	unaryInterceptors = append(unaryInterceptors, notificationsErrorMapper)
+
 	streamInterceptors, err := mgr.StreamInterceptors()
 	if err != nil {
 		log.Fatalf("Failed to get stream interceptors: %v", err)
@@ -40,7 +46,12 @@ func main() {
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
 	)
-	notificationHandler := handler.NewServer()
+
+	// TODO: Replace with actual service implementation in next iteration
+	// For now, use nil service - handlers will panic if called
+	var notificationService service.NotificationService = nil
+
+	notificationHandler := handler.NewServer(notificationService)
 	notificationsv1.RegisterNotificationServiceServer(grpcServer, notificationHandler)
 	reflection.Register(grpcServer)
 

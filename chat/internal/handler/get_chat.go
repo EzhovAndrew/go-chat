@@ -2,78 +2,96 @@ package handler
 
 import (
 	"context"
-	"log"
 
+	"github.com/go-chat/chat/internal/domain"
 	chatv1 "github.com/go-chat/chat/pkg/api/chat/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetChat retrieves chat information
-// Returns dummy chat until database integration is added
 func (s *Server) GetChat(ctx context.Context, req *chatv1.GetChatRequest) (*chatv1.GetChatResponse, error) {
-	log.Printf("GetChat called for chat_id: %s", req.ChatId)
-
 	// TODO: Extract authenticated user_id from JWT
-	// TODO: Query chat from database by chat_id
-	// TODO: Return NOT_FOUND if chat doesn't exist
-	// TODO: Verify user is a participant (PERMISSION_DENIED if not)
+	requesterID := domain.NewUserID("authenticated-user-id") // Placeholder
+
+	// Delegate to service layer
+	chat, err := s.chatService.GetChat(ctx, domain.NewChatID(req.ChatId), requesterID)
+	if err != nil {
+		return nil, err // Middleware will map domain error to gRPC status
+	}
+
+	// Convert domain model to proto message
+	participantIDs := make([]string, len(chat.ParticipantIDs))
+	for i, id := range chat.ParticipantIDs {
+		participantIDs[i] = id.String()
+	}
 
 	return &chatv1.GetChatResponse{
 		Chat: &chatv1.Chat{
-			ChatId: req.ChatId,
-			ParticipantIds: []string{
-				"550e8400-e29b-41d4-a716-446655440001",
-				"550e8400-e29b-41d4-a716-446655440002",
-			},
-			CreatedAt: timestamppb.Now(),
+			ChatId:         chat.ChatID.String(),
+			ParticipantIds: participantIDs,
+			CreatedAt:      timestamppb.New(chat.CreatedAt),
 		},
 	}, nil
 }
 
 // ListUserChats lists all chats for a user with cursor-based pagination
-// Returns dummy chats until database integration is added
 func (s *Server) ListUserChats(ctx context.Context, req *chatv1.ListUserChatsRequest) (*chatv1.ListUserChatsResponse, error) {
-	log.Printf("ListUserChats called for user_id: %s, limit: %d", req.UserId, req.Limit)
+	// Default limit if not provided
+	limit := req.Limit
+	if limit == 0 {
+		limit = 20
+	}
 
-	// TODO: Extract authenticated user_id from JWT
-	// TODO: Verify req.UserId matches authenticated user (or allow service-to-service calls)
-	// TODO: Decode cursor to get pagination position
-	// TODO: Query chats from database where user is participant
-	// TODO: Order by last_message_at DESC for most recent chats first
-	// TODO: Apply limit + 1 to check for more results
-	// TODO: Encode next_cursor if more results exist
+	// Delegate to service layer
+	chats, nextCursor, err := s.chatService.ListUserChats(
+		ctx,
+		domain.NewUserID(req.UserId),
+		req.Cursor,
+		limit,
+	)
+	if err != nil {
+		return nil, err // Middleware will map domain error to gRPC status
+	}
+
+	// Convert domain models to proto messages
+	pbChats := make([]*chatv1.Chat, len(chats))
+	for i, chat := range chats {
+		participantIDs := make([]string, len(chat.ParticipantIDs))
+		for j, id := range chat.ParticipantIDs {
+			participantIDs[j] = id.String()
+		}
+
+		pbChats[i] = &chatv1.Chat{
+			ChatId:         chat.ChatID.String(),
+			ParticipantIds: participantIDs,
+			CreatedAt:      timestamppb.New(chat.CreatedAt),
+		}
+	}
 
 	return &chatv1.ListUserChatsResponse{
-		Chats: []*chatv1.Chat{
-			{
-				ChatId: "550e8400-e29b-41d4-a716-446655440001",
-				ParticipantIds: []string{
-					req.UserId,
-					"550e8400-e29b-41d4-a716-446655440002",
-				},
-				CreatedAt: timestamppb.Now(),
-			},
-		},
-		NextCursor: "", // Empty means no more results
+		Chats:      pbChats,
+		NextCursor: nextCursor,
 	}, nil
 }
 
 // ListChatMembers lists all participants in a chat
-// Returns dummy participants until database integration is added
 func (s *Server) ListChatMembers(ctx context.Context, req *chatv1.ListChatMembersRequest) (*chatv1.ListChatMembersResponse, error) {
-	log.Printf("ListChatMembers called for chat_id: %s", req.ChatId)
-
 	// TODO: Extract authenticated user_id from JWT
-	// TODO: Query chat from database
-	// TODO: Return NOT_FOUND if chat doesn't exist
-	// TODO: Verify user is a participant (PERMISSION_DENIED if not)
-	// TODO: Return participant user IDs
+	requesterID := domain.NewUserID("authenticated-user-id") // Placeholder
+
+	// Delegate to service layer
+	members, err := s.chatService.ListChatMembers(ctx, domain.NewChatID(req.ChatId), requesterID)
+	if err != nil {
+		return nil, err // Middleware will map domain error to gRPC status
+	}
+
+	// Convert domain types to strings
+	userIDs := make([]string, len(members))
+	for i, id := range members {
+		userIDs[i] = id.String()
+	}
 
 	return &chatv1.ListChatMembersResponse{
-		UserIds: []string{
-			"550e8400-e29b-41d4-a716-446655440001",
-			"550e8400-e29b-41d4-a716-446655440002",
-		},
+		UserIds: userIDs,
 	}, nil
 }
-
