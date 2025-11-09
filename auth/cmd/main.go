@@ -5,6 +5,8 @@ import (
 	"net"
 
 	"github.com/go-chat/auth/internal/handler"
+	grpcmw "github.com/go-chat/auth/internal/middleware/grpc"
+	"github.com/go-chat/auth/internal/service"
 	authv1 "github.com/go-chat/auth/pkg/api/auth/v1"
 	"github.com/go-chat/lib/grpc_middleware"
 	"google.golang.org/grpc"
@@ -30,6 +32,10 @@ func main() {
 		log.Fatalf("Failed to get unary interceptors: %v", err)
 	}
 
+	// Add auth service error mapper middleware
+	authErrorMapper := grpcmw.ErrorMapperInterceptor()
+	unaryInterceptors = append(unaryInterceptors, authErrorMapper)
+
 	streamInterceptors, err := mgr.StreamInterceptors()
 	if err != nil {
 		log.Fatalf("Failed to get stream interceptors: %v", err)
@@ -40,7 +46,13 @@ func main() {
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
 	)
-	authHandler := handler.NewServer()
+
+	// TODO: Replace with actual service implementations in next iteration
+	// For now, use nil services - handlers will panic if called
+	var authService service.AuthService = nil
+	var tokenService service.TokenService = nil
+
+	authHandler := handler.NewServer(authService, tokenService)
 	authv1.RegisterAuthServiceServer(grpcServer, authHandler)
 	reflection.Register(grpcServer)
 

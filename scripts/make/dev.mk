@@ -23,7 +23,7 @@ test: ## Run tests for all services
 	@echo "Running tests..."
 	@for service in $(SERVICES); do \
 		echo "Testing $$service..."; \
-		go test -v -race -cover ./$$service/...; \
+		cd $$service && go test -v -race -cover ./... && cd .. || exit 1; \
 	done
 	@echo "Tests completed ✓"
 
@@ -38,7 +38,7 @@ test-coverage: ## Run tests with coverage report
 	@echo "Running tests with coverage..."
 	@for service in $(SERVICES); do \
 		echo "Testing $$service..."; \
-		go test -v -race -coverprofile=$$service/coverage.out -covermode=atomic ./$$service/...; \
+		cd $$service && go test -v -race -coverprofile=coverage.out -covermode=atomic ./... && cd .. || exit 1; \
 	done
 	@echo "Tests with coverage completed ✓"
 

@@ -2,28 +2,30 @@ package handler
 
 import (
 	"context"
-	"log"
 
 	authv1 "github.com/go-chat/auth/pkg/api/auth/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
+// GetPublicKeys returns public keys for JWT validation (internal endpoint)
 func (s *Server) GetPublicKeys(ctx context.Context, req *authv1.GetPublicKeysRequest) (*authv1.GetPublicKeysResponse, error) {
-	log.Println("GetPublicKeys called")
+	keys, err := s.tokenService.GetPublicKeys(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to retrieve public keys")
+	}
 
-	// TODO: Implement JWK endpoint:
-	// - Load RSA key pair
-	// - Convert public key to JWK format
-	// - Support key rotation
+	// Convert domain keys to protobuf
+	pbKeys := make([]*authv1.PublicKey, len(keys))
+	for i, key := range keys {
+		pbKeys[i] = &authv1.PublicKey{
+			Kid: key.Kid,
+			Alg: key.Alg,
+			Use: key.Use,
+			N:   key.N,
+			E:   key.E,
+		}
+	}
 
-	return &authv1.GetPublicKeysResponse{
-		Keys: []*authv1.PublicKey{
-			{
-				Kid: "key-2024-01",
-				Alg: "RS256",
-				Use: "sig",
-				N:   "dummy_modulus_base64url_encoded_value",
-				E:   "AQAB",
-			},
-		},
-	}, nil
+	return &authv1.GetPublicKeysResponse{Keys: pbKeys}, nil
 }

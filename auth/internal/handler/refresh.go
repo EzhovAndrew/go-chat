@@ -2,24 +2,21 @@ package handler
 
 import (
 	"context"
-	"log"
 
 	authv1 "github.com/go-chat/auth/pkg/api/auth/v1"
 )
 
+// Refresh renews the access token using a refresh token
 func (s *Server) Refresh(ctx context.Context, req *authv1.RefreshRequest) (*authv1.RefreshResponse, error) {
-	log.Println("Refresh called")
-
-	// TODO: Implement token refresh with rotation:
-	// - Validate refresh token (signature, expiry, not revoked)
-	// - Generate new access and refresh tokens
-	// - Revoke old refresh token
-	// - Return UNAUTHENTICATED if invalid
+	tokens, userID, err := s.authService.Refresh(ctx, req.RefreshToken)
+	if err != nil {
+		return nil, err // Middleware will map domain error to gRPC status
+	}
 
 	return &authv1.RefreshResponse{
-		AccessToken:  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.dummy.new_access_token",
-		RefreshToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.dummy.new_refresh_token",
-		UserId:       "550e8400-e29b-41d4-a716-446655440000",
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		UserId:       userID.String(),
 	}, nil
 }
 
