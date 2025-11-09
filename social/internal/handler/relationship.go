@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-chat/social/internal/domain"
+	"github.com/go-chat/social/internal/dto"
 	socialv1 "github.com/go-chat/social/pkg/api/social/v1"
 )
 
@@ -20,21 +21,7 @@ func (s *Server) CheckRelationship(ctx context.Context, req *socialv1.CheckRelat
 	}
 
 	// Convert domain status to proto enum
-	var protoStatus socialv1.RelationshipStatus
-	switch status {
-	case domain.RelationshipStatusNone:
-		protoStatus = socialv1.RelationshipStatus_RELATIONSHIP_STATUS_NONE
-	case domain.RelationshipStatusPending:
-		protoStatus = socialv1.RelationshipStatus_RELATIONSHIP_STATUS_PENDING
-	case domain.RelationshipStatusFriend:
-		protoStatus = socialv1.RelationshipStatus_RELATIONSHIP_STATUS_FRIEND
-	case domain.RelationshipStatusBlocked:
-		protoStatus = socialv1.RelationshipStatus_RELATIONSHIP_STATUS_BLOCKED
-	default:
-		protoStatus = socialv1.RelationshipStatus_RELATIONSHIP_STATUS_UNSPECIFIED
-	}
-
 	return &socialv1.CheckRelationshipResponse{
-		Status: protoStatus,
+		Status: dto.ToProtoRelationshipStatus(status),
 	}, nil
 }

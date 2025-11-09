@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-chat/chat/internal/domain"
+	"github.com/go-chat/chat/internal/dto"
 	chatv1 "github.com/go-chat/chat/pkg/api/chat/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetChat retrieves chat information
@@ -20,17 +20,8 @@ func (s *Server) GetChat(ctx context.Context, req *chatv1.GetChatRequest) (*chat
 	}
 
 	// Convert domain model to proto message
-	participantIDs := make([]string, len(chat.ParticipantIDs))
-	for i, id := range chat.ParticipantIDs {
-		participantIDs[i] = id.String()
-	}
-
 	return &chatv1.GetChatResponse{
-		Chat: &chatv1.Chat{
-			ChatId:         chat.ChatID.String(),
-			ParticipantIds: participantIDs,
-			CreatedAt:      timestamppb.New(chat.CreatedAt),
-		},
+		Chat: dto.ToProtoChat(chat),
 	}, nil
 }
 
@@ -54,22 +45,8 @@ func (s *Server) ListUserChats(ctx context.Context, req *chatv1.ListUserChatsReq
 	}
 
 	// Convert domain models to proto messages
-	pbChats := make([]*chatv1.Chat, len(chats))
-	for i, chat := range chats {
-		participantIDs := make([]string, len(chat.ParticipantIDs))
-		for j, id := range chat.ParticipantIDs {
-			participantIDs[j] = id.String()
-		}
-
-		pbChats[i] = &chatv1.Chat{
-			ChatId:         chat.ChatID.String(),
-			ParticipantIds: participantIDs,
-			CreatedAt:      timestamppb.New(chat.CreatedAt),
-		}
-	}
-
 	return &chatv1.ListUserChatsResponse{
-		Chats:      pbChats,
+		Chats:      dto.ToProtoChats(chats),
 		NextCursor: nextCursor,
 	}, nil
 }

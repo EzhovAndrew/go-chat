@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/go-chat/chat/internal/domain"
+	"github.com/go-chat/chat/internal/dto"
 	chatv1 "github.com/go-chat/chat/pkg/api/chat/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // SendMessage sends a message to a chat
@@ -28,13 +28,7 @@ func (s *Server) SendMessage(ctx context.Context, req *chatv1.SendMessageRequest
 
 	// Convert domain model to proto message
 	return &chatv1.SendMessageResponse{
-		Message: &chatv1.Message{
-			MessageId: message.MessageID.String(),
-			ChatId:    message.ChatID.String(),
-			SenderId:  message.SenderID.String(),
-			Text:      message.Text,
-			CreatedAt: timestamppb.New(message.CreatedAt),
-		},
+		Message: dto.ToProtoMessage(message),
 	}, nil
 }
 
@@ -62,19 +56,8 @@ func (s *Server) ListMessages(ctx context.Context, req *chatv1.ListMessagesReque
 	}
 
 	// Convert domain models to proto messages
-	pbMessages := make([]*chatv1.Message, len(messages))
-	for i, message := range messages {
-		pbMessages[i] = &chatv1.Message{
-			MessageId: message.MessageID.String(),
-			ChatId:    message.ChatID.String(),
-			SenderId:  message.SenderID.String(),
-			Text:      message.Text,
-			CreatedAt: timestamppb.New(message.CreatedAt),
-		}
-	}
-
 	return &chatv1.ListMessagesResponse{
-		Messages:   pbMessages,
+		Messages:   dto.ToProtoMessages(messages),
 		NextCursor: nextCursor,
 	}, nil
 }

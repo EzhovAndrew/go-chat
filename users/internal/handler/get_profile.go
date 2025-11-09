@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-chat/users/internal/domain"
+	"github.com/go-chat/users/internal/dto"
 	usersv1 "github.com/go-chat/users/pkg/api/users/v1"
 )
 
@@ -17,12 +18,7 @@ func (s *Server) GetProfileByID(ctx context.Context, req *usersv1.GetProfileByID
 
 	// Convert domain model to proto message
 	return &usersv1.GetProfileByIDResponse{
-		Profile: &usersv1.UserProfile{
-			UserId:    profile.UserID.String(),
-			Nickname:  profile.Nickname,
-			Bio:       profile.Bio,
-			AvatarUrl: profile.AvatarURL,
-		},
+		Profile: dto.ToProtoProfile(profile),
 	}, nil
 }
 
@@ -41,18 +37,8 @@ func (s *Server) GetProfilesByIDs(ctx context.Context, req *usersv1.GetProfilesB
 	}
 
 	// Convert domain models to proto messages
-	pbProfiles := make([]*usersv1.UserProfile, len(profiles))
-	for i, profile := range profiles {
-		pbProfiles[i] = &usersv1.UserProfile{
-			UserId:    profile.UserID.String(),
-			Nickname:  profile.Nickname,
-			Bio:       profile.Bio,
-			AvatarUrl: profile.AvatarURL,
-		}
-	}
-
 	return &usersv1.GetProfilesByIDsResponse{
-		Profiles: pbProfiles,
+		Profiles: dto.ToProtoProfiles(profiles),
 	}, nil
 }
 
@@ -66,11 +52,6 @@ func (s *Server) GetProfileByNickname(ctx context.Context, req *usersv1.GetProfi
 
 	// Convert domain model to proto message
 	return &usersv1.GetProfileByNicknameResponse{
-		Profile: &usersv1.UserProfile{
-			UserId:    profile.UserID.String(),
-			Nickname:  profile.Nickname,
-			Bio:       profile.Bio,
-			AvatarUrl: profile.AvatarURL,
-		},
+		Profile: dto.ToProtoProfile(profile),
 	}, nil
 }

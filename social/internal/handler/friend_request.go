@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-chat/social/internal/domain"
+	"github.com/go-chat/social/internal/dto"
 	socialv1 "github.com/go-chat/social/pkg/api/social/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // SendFriendRequest sends a friend request to another user
@@ -25,13 +25,7 @@ func (s *Server) SendFriendRequest(ctx context.Context, req *socialv1.SendFriend
 
 	// Convert domain model to proto message
 	return &socialv1.SendFriendRequestResponse{
-		Request: &socialv1.FriendRequest{
-			RequestId:   friendRequest.RequestID.String(),
-			RequesterId: friendRequest.RequesterID.String(),
-			TargetId:    friendRequest.TargetID.String(),
-			CreatedAt:   timestamppb.New(friendRequest.CreatedAt),
-			Status:      string(friendRequest.Status),
-		},
+		Request: dto.ToProtoFriendRequest(friendRequest),
 	}, nil
 }
 
@@ -55,19 +49,8 @@ func (s *Server) ListRequests(ctx context.Context, req *socialv1.ListRequestsReq
 	}
 
 	// Convert domain models to proto messages
-	pbRequests := make([]*socialv1.FriendRequest, len(requests))
-	for i, request := range requests {
-		pbRequests[i] = &socialv1.FriendRequest{
-			RequestId:   request.RequestID.String(),
-			RequesterId: request.RequesterID.String(),
-			TargetId:    request.TargetID.String(),
-			CreatedAt:   timestamppb.New(request.CreatedAt),
-			Status:      string(request.Status),
-		}
-	}
-
 	return &socialv1.ListRequestsResponse{
-		Requests:   pbRequests,
+		Requests:   dto.ToProtoFriendRequests(requests),
 		NextCursor: nextCursor,
 	}, nil
 }
@@ -89,13 +72,7 @@ func (s *Server) AcceptFriendRequest(ctx context.Context, req *socialv1.AcceptFr
 
 	// Convert domain model to proto message
 	return &socialv1.AcceptFriendRequestResponse{
-		Request: &socialv1.FriendRequest{
-			RequestId:   friendRequest.RequestID.String(),
-			RequesterId: friendRequest.RequesterID.String(),
-			TargetId:    friendRequest.TargetID.String(),
-			CreatedAt:   timestamppb.New(friendRequest.CreatedAt),
-			Status:      string(friendRequest.Status),
-		},
+		Request: dto.ToProtoFriendRequest(friendRequest),
 	}, nil
 }
 

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-chat/notifications/internal/domain"
+	"github.com/go-chat/notifications/internal/dto"
 	notificationsv1 "github.com/go-chat/notifications/pkg/api/notifications/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetNotifications retrieves notification history for a user
@@ -28,35 +28,8 @@ func (s *Server) GetNotifications(ctx context.Context, req *notificationsv1.GetN
 	}
 
 	// Convert domain models to proto messages
-	pbNotifications := make([]*notificationsv1.Notification, len(notifications))
-	for i, notification := range notifications {
-		// Convert domain NotificationType to proto enum
-		var protoType notificationsv1.NotificationType
-		switch notification.Type {
-		case domain.NotificationTypeMessage:
-			protoType = notificationsv1.NotificationType_NOTIFICATION_TYPE_MESSAGE
-		case domain.NotificationTypeFriendRequest:
-			protoType = notificationsv1.NotificationType_NOTIFICATION_TYPE_FRIEND_REQUEST
-		case domain.NotificationTypeFriendAccepted:
-			protoType = notificationsv1.NotificationType_NOTIFICATION_TYPE_FRIEND_ACCEPTED
-		default:
-			protoType = notificationsv1.NotificationType_NOTIFICATION_TYPE_UNSPECIFIED
-		}
-
-		pbNotifications[i] = &notificationsv1.Notification{
-			NotificationId: notification.NotificationID.String(),
-			UserId:         notification.UserID.String(),
-			Type:           protoType,
-			Title:          notification.Title,
-			Body:           notification.Body,
-			Data:           notification.Data,
-			CreatedAt:      timestamppb.New(notification.CreatedAt),
-			Read:           notification.Read,
-		}
-	}
-
 	return &notificationsv1.GetNotificationsResponse{
-		Notifications: pbNotifications,
+		Notifications: dto.ToProtoNotifications(notifications),
 		NextCursor:    nextCursor,
 	}, nil
 }

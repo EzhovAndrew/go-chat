@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 
+	"github.com/go-chat/users/internal/dto"
 	usersv1 "github.com/go-chat/users/pkg/api/users/v1"
 )
 
@@ -21,18 +22,8 @@ func (s *Server) SearchByNickname(ctx context.Context, req *usersv1.SearchByNick
 	}
 
 	// Convert domain models to proto messages
-	pbProfiles := make([]*usersv1.UserProfile, len(profiles))
-	for i, profile := range profiles {
-		pbProfiles[i] = &usersv1.UserProfile{
-			UserId:    profile.UserID.String(),
-			Nickname:  profile.Nickname,
-			Bio:       profile.Bio,
-			AvatarUrl: profile.AvatarURL,
-		}
-	}
-
 	return &usersv1.SearchByNicknameResponse{
-		Profiles:   pbProfiles,
+		Profiles:   dto.ToProtoProfiles(profiles),
 		NextCursor: nextCursor,
 	}, nil
 }
