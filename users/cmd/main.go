@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-chat/lib/grpc_middleware"
 	"github.com/go-chat/users/internal/handler"
+	grpcmw "github.com/go-chat/users/internal/middleware/grpc"
+	"github.com/go-chat/users/internal/service"
 	usersv1 "github.com/go-chat/users/pkg/api/users/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -30,6 +32,10 @@ func main() {
 		log.Fatalf("Failed to get unary interceptors: %v", err)
 	}
 
+	// Add users service error mapper middleware
+	usersErrorMapper := grpcmw.ErrorMapperInterceptor()
+	unaryInterceptors = append(unaryInterceptors, usersErrorMapper)
+
 	streamInterceptors, err := mgr.StreamInterceptors()
 	if err != nil {
 		log.Fatalf("Failed to get stream interceptors: %v", err)
@@ -40,7 +46,12 @@ func main() {
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
 	)
-	userHandler := handler.NewServer()
+
+	// TODO: Replace with actual service implementation in next iteration
+	// For now, use nil service - handlers will panic if called
+	var userService service.UserService = nil
+
+	userHandler := handler.NewServer(userService)
 	usersv1.RegisterUserServiceServer(grpcServer, userHandler)
 	reflection.Register(grpcServer)
 

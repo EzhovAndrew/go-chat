@@ -2,30 +2,28 @@ package handler
 
 import (
 	"context"
-	"log"
 
+	"github.com/go-chat/users/internal/domain"
+	"github.com/go-chat/users/internal/dto"
 	usersv1 "github.com/go-chat/users/pkg/api/users/v1"
 )
 
 // UpdateProfile updates an existing user profile
-// Returns dummy updated profile until database integration is added
 func (s *Server) UpdateProfile(ctx context.Context, req *usersv1.UpdateProfileRequest) (*usersv1.UpdateProfileResponse, error) {
-	log.Printf("UpdateProfile called for user_id: %s", req.UserId)
+	// Delegate to service layer
+	profile, err := s.userService.UpdateProfile(
+		ctx,
+		domain.NewUserID(req.UserId),
+		req.Nickname,
+		req.Bio,
+		req.AvatarUrl,
+	)
+	if err != nil {
+		return nil, err // Middleware will map domain error to gRPC status
+	}
 
-	// TODO: Verify user_id matches authenticated user (extract from JWT in metadata)
-	// TODO: Check if profile exists (NOT_FOUND error)
-	// TODO: If nickname changed, validate format and uniqueness
-	// TODO: Update profile in database (only non-nil fields)
-	// TODO: Return ALREADY_EXISTS if new nickname is taken
-	// TODO: Return NOT_FOUND if profile doesn't exist
-
+	// Convert domain model to proto message
 	return &usersv1.UpdateProfileResponse{
-		Profile: &usersv1.UserProfile{
-			UserId:    req.UserId,
-			Nickname:  req.Nickname,
-			Bio:       req.Bio,
-			AvatarUrl: req.AvatarUrl,
-		},
+		Profile: dto.ToProtoProfile(profile),
 	}, nil
 }
-

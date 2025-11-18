@@ -1,0 +1,45 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+      
+      - name: Install tools
+        run: |
+          make install-tools
+          echo "$(pwd)/bin" >> $GITHUB_PATH
+      
+      - name: Generate proto files
+        run: make proto-gen
+      
+      - name: Run unit tests with coverage
+        run: make test
+      
+      - name: Generate coverage summary
+        run: |
+          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Handler Coverage | Middleware Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|------------------|---------------------|" >> $GITHUB_STEP_SUMMARY
+          
+          for service in auth users chat social notifications; do
+            handler_cov=$(cd $service && go test -cover ./internal/handler/... 2>&1 | grep "coverage:" | awk '{print $5}' | head -1 || echo "N/A")
+            middleware_cov=$(cd $service && go test -cover ./internal/middleware/... 2>&1 | grep "coverage:" | awk '{print $5}' | head -1 || echo "N/A")
+            echo "| $service | $handler_cov | $middleware_cov |" >> $GITHUB_STEP_SUMMARY
+          done
+

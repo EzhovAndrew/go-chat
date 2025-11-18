@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-chat/lib/grpc_middleware"
 	"github.com/go-chat/social/internal/handler"
+	grpcmw "github.com/go-chat/social/internal/middleware/grpc"
+	"github.com/go-chat/social/internal/service"
 	socialv1 "github.com/go-chat/social/pkg/api/social/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -30,6 +32,10 @@ func main() {
 		log.Fatalf("Failed to get unary interceptors: %v", err)
 	}
 
+	// Add social service error mapper middleware
+	socialErrorMapper := grpcmw.ErrorMapperInterceptor()
+	unaryInterceptors = append(unaryInterceptors, socialErrorMapper)
+
 	streamInterceptors, err := mgr.StreamInterceptors()
 	if err != nil {
 		log.Fatalf("Failed to get stream interceptors: %v", err)
@@ -40,7 +46,15 @@ func main() {
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
 	)
-	socialHandler := handler.NewServer()
+
+	// TODO: Replace with actual service implementations in next iteration
+	// For now, use nil services - handlers will panic if called
+	var friendRequestService service.FriendRequestService = nil
+	var friendshipService service.FriendshipService = nil
+	var blockService service.BlockService = nil
+	var relationshipService service.RelationshipService = nil
+
+	socialHandler := handler.NewServer(friendRequestService, friendshipService, blockService, relationshipService)
 	socialv1.RegisterSocialServiceServer(grpcServer, socialHandler)
 	reflection.Register(grpcServer)
 
