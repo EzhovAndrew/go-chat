@@ -28,6 +28,10 @@ issues:
     - path: '_grpc\.pb\.go$'
       linters:
         - all
+    # Exclude typecheck errors (false positives with module resolution)
+    - linters:
+        - typecheck
+      text: "undefined: jwt"
   
   # Don't report issues in vendor or generated code
   exclude-dirs:
