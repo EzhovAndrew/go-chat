@@ -13,7 +13,31 @@ import (
 
 // mockTokenService is a mock implementation of service.TokenService
 type mockTokenService struct {
-	getPublicKeysFunc func(ctx context.Context) ([]*domain.PublicKey, error)
+	generateTokenPairFunc             func(ctx context.Context, userID domain.UserID, email string) (*domain.TokenPair, *domain.RefreshToken, error)
+	storeRefreshTokenFunc             func(ctx context.Context, refreshToken *domain.RefreshToken) error
+	validateAndRevokeRefreshTokenFunc func(ctx context.Context, refreshToken string) (domain.UserID, error)
+	getPublicKeysFunc                 func(ctx context.Context) ([]*domain.PublicKey, error)
+}
+
+func (m *mockTokenService) GenerateTokenPair(ctx context.Context, userID domain.UserID, email string) (*domain.TokenPair, *domain.RefreshToken, error) {
+	if m.generateTokenPairFunc != nil {
+		return m.generateTokenPairFunc(ctx, userID, email)
+	}
+	return nil, nil, errors.New("not implemented")
+}
+
+func (m *mockTokenService) StoreRefreshToken(ctx context.Context, refreshToken *domain.RefreshToken) error {
+	if m.storeRefreshTokenFunc != nil {
+		return m.storeRefreshTokenFunc(ctx, refreshToken)
+	}
+	return errors.New("not implemented")
+}
+
+func (m *mockTokenService) ValidateAndRevokeRefreshToken(ctx context.Context, refreshToken string) (domain.UserID, error) {
+	if m.validateAndRevokeRefreshTokenFunc != nil {
+		return m.validateAndRevokeRefreshTokenFunc(ctx, refreshToken)
+	}
+	return "", errors.New("not implemented")
 }
 
 func (m *mockTokenService) GetPublicKeys(ctx context.Context) ([]*domain.PublicKey, error) {
